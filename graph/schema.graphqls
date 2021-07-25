@@ -1,0 +1,49 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type PrestoQuery {
+  id: ID!
+  query: String!
+  queryStats: QueryStats
+}
+
+type QueryStats {
+  executionTime: Duration
+}
+
+type Duration {
+  strVal: String!
+  longInMs: Int!
+}
+
+type Batch {
+  id: ID!
+  text: String!
+  done: Boolean!
+  queries: [PrestoQuery!]!
+}
+
+type Project {
+  id: ID!
+  batches: [Batch!]!
+}
+
+type Query {
+  project(id: ID!): Project!
+}
+
+input NewBatch {
+  text: String!
+  projectName: String!
+}
+
+input NewProject {
+  name: String!
+  userId: String!
+}
+
+type Mutation {
+  createProject(input: NewProject!): Project!
+  createBatch(input: NewBatch!): Batch!
+}
