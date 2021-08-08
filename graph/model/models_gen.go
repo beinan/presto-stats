@@ -2,16 +2,12 @@
 
 package model
 
-type Batch struct {
-	ID      string         `json:"id"`
-	Text    string         `json:"text"`
-	Done    bool           `json:"done"`
-	Queries []*PrestoQuery `json:"queries"`
-}
-
-type Duration struct {
-	StrVal   string `json:"strVal"`
-	LongInMs int    `json:"longInMs"`
+type JSONStats struct {
+	State      string                 `json:"state"`
+	SQL        string                 `json:"sql"`
+	QueryStats map[string]interface{} `json:"queryStats"`
+	Session    map[string]interface{} `json:"session"`
+	JSON       map[string]interface{} `json:"json"`
 }
 
 type NewBatch struct {
@@ -22,14 +18,4 @@ type NewBatch struct {
 type NewProject struct {
 	Name   string `json:"name"`
 	UserID string `json:"userId"`
-}
-
-type PrestoQuery struct {
-	ID         string      `json:"id"`
-	Query      string      `json:"query"`
-	QueryStats *QueryStats `json:"queryStats"`
-}
-
-type QueryStats struct {
-	ExecutionTime *Duration `json:"executionTime"`
 }

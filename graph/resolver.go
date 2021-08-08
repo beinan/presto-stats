@@ -1,13 +1,11 @@
 package graph
 
-import (
-	"alluxio.com/presto-stats/graph/db"
-)
+import "alluxio.com/presto-stats/dashboard-ui/storage"
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB db.DB
+	DB storage.LocalFileDB
 }

@@ -35,7 +35,8 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Mutation() MutationResolver
+	Batch() BatchResolver
+	PrestoQuery() PrestoQueryResolver
 	Project() ProjectResolver
 	Query() QueryResolver
 }
@@ -45,26 +46,23 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Batch struct {
-		Done    func(childComplexity int) int
 		ID      func(childComplexity int) int
+		Project func(childComplexity int) int
 		Queries func(childComplexity int) int
-		Text    func(childComplexity int) int
 	}
 
-	Duration struct {
-		LongInMs func(childComplexity int) int
-		StrVal   func(childComplexity int) int
-	}
-
-	Mutation struct {
-		CreateBatch   func(childComplexity int, input model.NewBatch) int
-		CreateProject func(childComplexity int, input model.NewProject) int
+	JSONStats struct {
+		JSON       func(childComplexity int) int
+		QueryStats func(childComplexity int) int
+		SQL        func(childComplexity int) int
+		Session    func(childComplexity int) int
+		State      func(childComplexity int) int
 	}
 
 	PrestoQuery struct {
-		ID         func(childComplexity int) int
-		Query      func(childComplexity int) int
-		QueryStats func(childComplexity int) int
+		Batch     func(childComplexity int) int
+		ID        func(childComplexity int) int
+		JSONStats func(childComplexity int) int
 	}
 
 	Project struct {
@@ -73,22 +71,24 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Project func(childComplexity int, id string) int
-	}
-
-	QueryStats struct {
-		ExecutionTime func(childComplexity int) int
+		Project  func(childComplexity int, id string) int
+		Projects func(childComplexity int) int
 	}
 }
 
-type MutationResolver interface {
-	CreateProject(ctx context.Context, input model.NewProject) (*model.Project, error)
-	CreateBatch(ctx context.Context, input model.NewBatch) (*model.Batch, error)
+type BatchResolver interface {
+	Project(ctx context.Context, obj *model.Batch) (*model.Project, error)
+	Queries(ctx context.Context, obj *model.Batch) ([]*model.PrestoQuery, error)
+}
+type PrestoQueryResolver interface {
+	Batch(ctx context.Context, obj *model.PrestoQuery) (*model.Batch, error)
+	JSONStats(ctx context.Context, obj *model.PrestoQuery) (*model.JSONStats, error)
 }
 type ProjectResolver interface {
 	Batches(ctx context.Context, obj *model.Project) ([]*model.Batch, error)
 }
 type QueryResolver interface {
+	Projects(ctx context.Context) ([]*model.Project, error)
 	Project(ctx context.Context, id string) (*model.Project, error)
 }
 
@@ -107,19 +107,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Batch.done":
-		if e.complexity.Batch.Done == nil {
-			break
-		}
-
-		return e.complexity.Batch.Done(childComplexity), true
-
 	case "Batch.id":
 		if e.complexity.Batch.ID == nil {
 			break
 		}
 
 		return e.complexity.Batch.ID(childComplexity), true
+
+	case "Batch.project":
+		if e.complexity.Batch.Project == nil {
+			break
+		}
+
+		return e.complexity.Batch.Project(childComplexity), true
 
 	case "Batch.queries":
 		if e.complexity.Batch.Queries == nil {
@@ -128,50 +128,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Batch.Queries(childComplexity), true
 
-	case "Batch.text":
-		if e.complexity.Batch.Text == nil {
+	case "JsonStats.json":
+		if e.complexity.JSONStats.JSON == nil {
 			break
 		}
 
-		return e.complexity.Batch.Text(childComplexity), true
+		return e.complexity.JSONStats.JSON(childComplexity), true
 
-	case "Duration.longInMs":
-		if e.complexity.Duration.LongInMs == nil {
+	case "JsonStats.queryStats":
+		if e.complexity.JSONStats.QueryStats == nil {
 			break
 		}
 
-		return e.complexity.Duration.LongInMs(childComplexity), true
+		return e.complexity.JSONStats.QueryStats(childComplexity), true
 
-	case "Duration.strVal":
-		if e.complexity.Duration.StrVal == nil {
+	case "JsonStats.sql":
+		if e.complexity.JSONStats.SQL == nil {
 			break
 		}
 
-		return e.complexity.Duration.StrVal(childComplexity), true
+		return e.complexity.JSONStats.SQL(childComplexity), true
 
-	case "Mutation.createBatch":
-		if e.complexity.Mutation.CreateBatch == nil {
+	case "JsonStats.session":
+		if e.complexity.JSONStats.Session == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createBatch_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
+		return e.complexity.JSONStats.Session(childComplexity), true
 
-		return e.complexity.Mutation.CreateBatch(childComplexity, args["input"].(model.NewBatch)), true
-
-	case "Mutation.createProject":
-		if e.complexity.Mutation.CreateProject == nil {
+	case "JsonStats.state":
+		if e.complexity.JSONStats.State == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createProject_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
+		return e.complexity.JSONStats.State(childComplexity), true
+
+	case "PrestoQuery.batch":
+		if e.complexity.PrestoQuery.Batch == nil {
+			break
 		}
 
-		return e.complexity.Mutation.CreateProject(childComplexity, args["input"].(model.NewProject)), true
+		return e.complexity.PrestoQuery.Batch(childComplexity), true
 
 	case "PrestoQuery.id":
 		if e.complexity.PrestoQuery.ID == nil {
@@ -180,19 +177,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PrestoQuery.ID(childComplexity), true
 
-	case "PrestoQuery.query":
-		if e.complexity.PrestoQuery.Query == nil {
+	case "PrestoQuery.jsonStats":
+		if e.complexity.PrestoQuery.JSONStats == nil {
 			break
 		}
 
-		return e.complexity.PrestoQuery.Query(childComplexity), true
-
-	case "PrestoQuery.queryStats":
-		if e.complexity.PrestoQuery.QueryStats == nil {
-			break
-		}
-
-		return e.complexity.PrestoQuery.QueryStats(childComplexity), true
+		return e.complexity.PrestoQuery.JSONStats(childComplexity), true
 
 	case "Project.batches":
 		if e.complexity.Project.Batches == nil {
@@ -220,12 +210,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Project(childComplexity, args["id"].(string)), true
 
-	case "QueryStats.executionTime":
-		if e.complexity.QueryStats.ExecutionTime == nil {
+	case "Query.projects":
+		if e.complexity.Query.Projects == nil {
 			break
 		}
 
-		return e.complexity.QueryStats.ExecutionTime(childComplexity), true
+		return e.complexity.Query.Projects(childComplexity), true
 
 	}
 	return 0, false
@@ -244,20 +234,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			}
 			first = false
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
-			var buf bytes.Buffer
-			data.MarshalGQL(&buf)
-
-			return &graphql.Response{
-				Data: buf.Bytes(),
-			}
-		}
-	case ast.Mutation:
-		return func(ctx context.Context) *graphql.Response {
-			if !first {
-				return nil
-			}
-			first = false
-			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -295,25 +271,25 @@ var sources = []*ast.Source{
 #
 # https://gqlgen.com/getting-started/
 
+scalar Map
+
 type PrestoQuery {
   id: ID!
-  query: String!
-  queryStats: QueryStats
+  batch: Batch!
+  jsonStats: JsonStats!
 }
 
-type QueryStats {
-  executionTime: Duration
-}
-
-type Duration {
-  strVal: String!
-  longInMs: Int!
+type JsonStats {
+  state: String!
+  sql: String!
+  queryStats: Map
+  session: Map
+  json: Map
 }
 
 type Batch {
   id: ID!
-  text: String!
-  done: Boolean!
+  project: Project!
   queries: [PrestoQuery!]!
 }
 
@@ -323,6 +299,7 @@ type Project {
 }
 
 type Query {
+  projects: [Project!]!
   project(id: ID!): Project!
 }
 
@@ -336,46 +313,13 @@ input NewProject {
   userId: String!
 }
 
-type Mutation {
-  createProject(input: NewProject!): Project!
-  createBatch(input: NewBatch!): Batch!
-}`, BuiltIn: false},
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_createBatch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.NewBatch
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewBatch2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewBatch(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.NewProject
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewProject2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewProject(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -480,7 +424,7 @@ func (ec *executionContext) _Batch_id(ctx context.Context, field graphql.Collect
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Batch_text(ctx context.Context, field graphql.CollectedField, obj *model.Batch) (ret graphql.Marshaler) {
+func (ec *executionContext) _Batch_project(ctx context.Context, field graphql.CollectedField, obj *model.Batch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -489,181 +433,6 @@ func (ec *executionContext) _Batch_text(ctx context.Context, field graphql.Colle
 	}()
 	fc := &graphql.FieldContext{
 		Object:     "Batch",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Text, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Batch_done(ctx context.Context, field graphql.CollectedField, obj *model.Batch) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Batch",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Done, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Batch_queries(ctx context.Context, field graphql.CollectedField, obj *model.Batch) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Batch",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Queries, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.PrestoQuery)
-	fc.Result = res
-	return ec.marshalNPrestoQuery2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐPrestoQueryᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Duration_strVal(ctx context.Context, field graphql.CollectedField, obj *model.Duration) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Duration",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.StrVal, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Duration_longInMs(ctx context.Context, field graphql.CollectedField, obj *model.Duration) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Duration",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LongInMs, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_createProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   true,
@@ -671,16 +440,9 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createProject_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateProject(rctx, args["input"].(model.NewProject))
+		return ec.resolvers.Batch().Project(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -697,7 +459,7 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 	return ec.marshalNProject2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProject(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createBatch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Batch_queries(ctx context.Context, field graphql.CollectedField, obj *model.Batch) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -705,7 +467,7 @@ func (ec *executionContext) _Mutation_createBatch(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:     "Mutation",
+		Object:     "Batch",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   true,
@@ -713,16 +475,9 @@ func (ec *executionContext) _Mutation_createBatch(ctx context.Context, field gra
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createBatch_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateBatch(rctx, args["input"].(model.NewBatch))
+		return ec.resolvers.Batch().Queries(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -734,9 +489,175 @@ func (ec *executionContext) _Mutation_createBatch(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Batch)
+	res := resTmp.([]*model.PrestoQuery)
 	fc.Result = res
-	return ec.marshalNBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐBatch(ctx, field.Selections, res)
+	return ec.marshalNPrestoQuery2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐPrestoQueryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_state(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_sql(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SQL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_queryStats(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QueryStats, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_session(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_json(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.JSON, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PrestoQuery_id(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
@@ -774,7 +695,7 @@ func (ec *executionContext) _PrestoQuery_id(ctx context.Context, field graphql.C
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PrestoQuery_query(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrestoQuery_batch(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -785,14 +706,14 @@ func (ec *executionContext) _PrestoQuery_query(ctx context.Context, field graphq
 		Object:     "PrestoQuery",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Query, nil
+		return ec.resolvers.PrestoQuery().Batch(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -804,12 +725,12 @@ func (ec *executionContext) _PrestoQuery_query(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Batch)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐBatch(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PrestoQuery_queryStats(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
+func (ec *executionContext) _PrestoQuery_jsonStats(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -820,25 +741,28 @@ func (ec *executionContext) _PrestoQuery_queryStats(ctx context.Context, field g
 		Object:     "PrestoQuery",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.QueryStats, nil
+		return ec.resolvers.PrestoQuery().JSONStats(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.QueryStats)
+	res := resTmp.(*model.JSONStats)
 	fc.Result = res
-	return ec.marshalOQueryStats2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐQueryStats(ctx, field.Selections, res)
+	return ec.marshalNJsonStats2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐJSONStats(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Project_id(ctx context.Context, field graphql.CollectedField, obj *model.Project) (ret graphql.Marshaler) {
@@ -909,6 +833,41 @@ func (ec *executionContext) _Project_batches(ctx context.Context, field graphql.
 	res := resTmp.([]*model.Batch)
 	fc.Result = res
 	return ec.marshalNBatch2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐBatchᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Projects(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Project)
+	fc.Result = res
+	return ec.marshalNProject2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProjectᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1022,38 +981,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _QueryStats_executionTime(ctx context.Context, field graphql.CollectedField, obj *model.QueryStats) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "QueryStats",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ExecutionTime, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Duration)
-	fc.Result = res
-	return ec.marshalODuration2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐDuration(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2221,23 +2148,36 @@ func (ec *executionContext) _Batch(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Batch_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "text":
-			out.Values[i] = ec._Batch_text(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "done":
-			out.Values[i] = ec._Batch_done(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "project":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Batch_project(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "queries":
-			out.Values[i] = ec._Batch_queries(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Batch_queries(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2249,63 +2189,33 @@ func (ec *executionContext) _Batch(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
-var durationImplementors = []string{"Duration"}
+var jsonStatsImplementors = []string{"JsonStats"}
 
-func (ec *executionContext) _Duration(ctx context.Context, sel ast.SelectionSet, obj *model.Duration) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, durationImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Duration")
-		case "strVal":
-			out.Values[i] = ec._Duration_strVal(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "longInMs":
-			out.Values[i] = ec._Duration_longInMs(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var mutationImplementors = []string{"Mutation"}
-
-func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
-
-	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
-		Object: "Mutation",
-	})
+func (ec *executionContext) _JsonStats(ctx context.Context, sel ast.SelectionSet, obj *model.JSONStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jsonStatsImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createProject":
-			out.Values[i] = ec._Mutation_createProject(ctx, field)
+			out.Values[i] = graphql.MarshalString("JsonStats")
+		case "state":
+			out.Values[i] = ec._JsonStats_state(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createBatch":
-			out.Values[i] = ec._Mutation_createBatch(ctx, field)
+		case "sql":
+			out.Values[i] = ec._JsonStats_sql(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "queryStats":
+			out.Values[i] = ec._JsonStats_queryStats(ctx, field, obj)
+		case "session":
+			out.Values[i] = ec._JsonStats_session(ctx, field, obj)
+		case "json":
+			out.Values[i] = ec._JsonStats_json(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2331,15 +2241,36 @@ func (ec *executionContext) _PrestoQuery(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._PrestoQuery_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "query":
-			out.Values[i] = ec._PrestoQuery_query(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "queryStats":
-			out.Values[i] = ec._PrestoQuery_queryStats(ctx, field, obj)
+		case "batch":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PrestoQuery_batch(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "jsonStats":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PrestoQuery_jsonStats(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2407,6 +2338,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "projects":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_projects(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "project":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -2425,30 +2370,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var queryStatsImplementors = []string{"QueryStats"}
-
-func (ec *executionContext) _QueryStats(ctx context.Context, sel ast.SelectionSet, obj *model.QueryStats) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, queryStatsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("QueryStats")
-		case "executionTime":
-			out.Values[i] = ec._QueryStats_executionTime(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2786,29 +2707,18 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNJsonStats2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐJSONStats(ctx context.Context, sel ast.SelectionSet, v model.JSONStats) graphql.Marshaler {
+	return ec._JsonStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
-	if res == graphql.Null {
+func (ec *executionContext) marshalNJsonStats2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐJSONStats(ctx context.Context, sel ast.SelectionSet, v *model.JSONStats) graphql.Marshaler {
+	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
+		return graphql.Null
 	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNNewBatch2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewBatch(ctx context.Context, v interface{}) (model.NewBatch, error) {
-	res, err := ec.unmarshalInputNewBatch(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewProject2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewProject(ctx context.Context, v interface{}) (model.NewProject, error) {
-	res, err := ec.unmarshalInputNewProject(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+	return ec._JsonStats(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPrestoQuery2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐPrestoQueryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PrestoQuery) graphql.Marshaler {
@@ -2860,6 +2770,43 @@ func (ec *executionContext) marshalNPrestoQuery2ᚖalluxioᚗcomᚋprestoᚑstat
 
 func (ec *executionContext) marshalNProject2alluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v model.Project) graphql.Marshaler {
 	return ec._Project(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProject2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Project) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProject2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProject(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNProject2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v *model.Project) graphql.Marshaler {
@@ -3140,18 +3087,19 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalODuration2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐDuration(ctx context.Context, sel ast.SelectionSet, v *model.Duration) graphql.Marshaler {
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
-		return graphql.Null
+		return nil, nil
 	}
-	return ec._Duration(ctx, sel, v)
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOQueryStats2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐQueryStats(ctx context.Context, sel ast.SelectionSet, v *model.QueryStats) graphql.Marshaler {
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._QueryStats(ctx, sel, v)
+	return graphql.MarshalMap(v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

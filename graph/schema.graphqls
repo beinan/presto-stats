@@ -2,25 +2,25 @@
 #
 # https://gqlgen.com/getting-started/
 
+scalar Map
+
 type PrestoQuery {
   id: ID!
-  query: String!
-  queryStats: QueryStats
+  batch: Batch!
+  jsonStats: JsonStats!
 }
 
-type QueryStats {
-  executionTime: Duration
-}
-
-type Duration {
-  strVal: String!
-  longInMs: Int!
+type JsonStats {
+  state: String!
+  sql: String!
+  queryStats: Map
+  session: Map
+  json: Map
 }
 
 type Batch {
   id: ID!
-  text: String!
-  done: Boolean!
+  project: Project!
   queries: [PrestoQuery!]!
 }
 
@@ -30,6 +30,7 @@ type Project {
 }
 
 type Query {
+  projects: [Project!]!
   project(id: ID!): Project!
 }
 
@@ -43,7 +44,3 @@ input NewProject {
   userId: String!
 }
 
-type Mutation {
-  createProject(input: NewProject!): Project!
-  createBatch(input: NewBatch!): Batch!
-}

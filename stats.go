@@ -15,7 +15,7 @@ type OperatorSummary struct {
 	Name                              string
 }
 
-func main() {
+func main2() {
 	// app := iris.New()
 
 	// statsAPI := app.Party("/stats")
@@ -31,7 +31,7 @@ func main() {
 	// query := result["query"]
 
 	// fmt.Println(query)
-	compare(readJson("/Users/beinan/Downloads/Jsons/L8_2.json"), readJson("/Users/beinan/Downloads/Jsons/L8_Hive_Caching_2.json"))
+	compare(readJson("/Users/beinan/Downloads/Alluxio_Jsons/L15_def_cache_2.json"), readJson("/Users/beinan/Downloads/Alluxio_Jsons/L15_2.json"))
 
 	//
 	// fmt.Println("Escape Time", queryStats["elapsedTime"])
@@ -60,8 +60,11 @@ func readJson(path string) map[string]interface{} {
 }
 
 func compare(json1 map[string]interface{}, json2 map[string]interface{}) {
+	fmt.Println("file 1 --------------")
 	sumMap1 := calOpSumary(json1)
+	fmt.Println("file 2 --------------")
 	sumMap2 := calOpSumary(json2)
+	fmt.Println("results --------------")
 	for key, sum1 := range sumMap1 {
 		sum2 := sumMap2[key]
 		fmt.Println(key,
@@ -82,7 +85,7 @@ func calOpSumary(json map[string]interface{}) map[string]OperatorSummary {
 	operatorSummaries := queryStats["operatorSummaries"].([]interface{})
 
 	result := make(map[string]OperatorSummary)
-	for _, elem := range operatorSummaries {
+	for i, elem := range operatorSummaries {
 		operatorSummary := elem.(map[string]interface{})
 		name := operatorSummary["operatorType"].(string)
 		inputWall, _ := time.ParseDuration(operatorSummary["addInputWall"].(string))
@@ -97,7 +100,7 @@ func calOpSumary(json map[string]interface{}) map[string]OperatorSummary {
 			result[name] = OperatorSummary{InputWall: inputWall, OutputWall: outputWall, FinishWall: finishWall, Name: name}
 		}
 
-		//fmt.Println(i, operatorSummary["operatorType"], operatorSummary["addInputWall"], operatorSummary["getOutputWall"], operatorSummary["finishWall"])
+		fmt.Println(i, operatorSummary["operatorType"], operatorSummary["addInputWall"], operatorSummary["getOutputWall"], operatorSummary["finishWall"], operatorSummary["physicalInputDataSize"])
 	}
 	return result
 }

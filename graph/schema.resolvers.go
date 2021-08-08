@@ -6,74 +6,67 @@ package graph
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"alluxio.com/presto-stats/graph/generated"
 	"alluxio.com/presto-stats/graph/model"
-	"github.com/beinan/fastid"
 )
 
-func (r *mutationResolver) CreateProject(ctx context.Context, input model.NewProject) (*model.Project, error) {
-	project := model.Project{
-		ID:       input.Name,
-		BatchIDs: make([]string, 0),
-	}
-	err := r.DB.Create("project", project.ID, &project)
-	if err != nil {
-		return nil, err
-	}
-	return &project, nil
+func (r *batchResolver) Project(ctx context.Context, obj *model.Batch) (*model.Project, error) {
+	project, err := r.DB.GetProject(obj.ProjectID)
+	return project, err
 }
 
-func (r *mutationResolver) CreateBatch(ctx context.Context, input model.NewBatch) (*model.Batch, error) {
-	id := strconv.FormatInt(fastid.CommonConfig.GenInt64ID(), 16)
-	batch := model.Batch{
-		ID:   id,
-		Text: input.Text,
-		Done: false,
+func (r *batchResolver) Queries(ctx context.Context, obj *model.Batch) ([]*model.PrestoQuery, error) {
+	results := make([]*model.PrestoQuery, len(obj.QueryIDs))
+	for i, queryID := range obj.QueryIDs {
+		results[i] = &model.PrestoQuery{ID: queryID, BatchID: obj.ID, ProjectID: obj.ProjectID}
 	}
-	err := r.DB.Create("batch", id, &batch)
+	return results, nil
+}
+
+func (r *prestoQueryResolver) Batch(ctx context.Context, obj *model.PrestoQuery) (*model.Batch, error) {
+	batch, err := r.DB.GetBatch(obj.ProjectID, obj.BatchID)
+	return batch, err
+}
+
+func (r *prestoQueryResolver) JSONStats(ctx context.Context, obj *model.PrestoQuery) (*model.JSONStats, error) {
+	json, err := r.DB.ReadJson(obj.ProjectID, obj.BatchID, obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	project := model.Project{}
-	err = r.DB.Get("project", input.ProjectName, &project)
-	if err != nil {
-		return nil, err
-	}
-	project.BatchIDs = append(project.BatchIDs, id)
-	err = r.DB.Update("project", project.ID, &project)
-	if err != nil {
-		return nil, err
-	}
-	return &batch, nil
+	stats := json["queryStats"].(map[string]interface{})
+	session := json["session"].(map[string]interface{})
+	return &model.JSONStats{
+		JSON:       json,
+		State:      json["state"].(string),
+		SQL:        json["query"].(string),
+		QueryStats: stats,
+		Session:    session,
+	}, nil
 }
 
 func (r *projectResolver) Batches(ctx context.Context, obj *model.Project) ([]*model.Batch, error) {
-	batches := make([]*model.Batch, len(obj.BatchIDs))
+	batches, err := r.DB.GetBatches(obj.ID)
+	return batches, err
+}
 
-	for i, id := range obj.BatchIDs {
-		batch := model.Batch{}
-		err := r.DB.Get("batch", id, &batch)
-		if err != nil {
-			return nil, err
-		}
-		batches[i] = &batch
-	}
-	return batches, nil
+func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) {
+	fmt.Println("Listing Projects")
+	projects, err := r.DB.GetProjects()
+	return projects, err
 }
 
 func (r *queryResolver) Project(ctx context.Context, id string) (*model.Project, error) {
-	project := model.Project{}
-	err := r.DB.Get("project", id, &project)
-	if err != nil {
-		return nil, err
-	}
-	return &project, nil
+	fmt.Println("Get Project:" + id)
+	project, err := r.DB.GetProject(id)
+	return project, err
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+// Batch returns generated.BatchResolver implementation.
+func (r *Resolver) Batch() generated.BatchResolver { return &batchResolver{r} }
+
+// PrestoQuery returns generated.PrestoQueryResolver implementation.
+func (r *Resolver) PrestoQuery() generated.PrestoQueryResolver { return &prestoQueryResolver{r} }
 
 // Project returns generated.ProjectResolver implementation.
 func (r *Resolver) Project() generated.ProjectResolver { return &projectResolver{r} }
@@ -81,16 +74,7 @@ func (r *Resolver) Project() generated.ProjectResolver { return &projectResolver
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-type mutationResolver struct{ *Resolver }
+type batchResolver struct{ *Resolver }
+type prestoQueryResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *projectResolver) ID(ctx context.Context, obj *model.Project) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
