@@ -10,12 +10,18 @@ import {
 } from "@apollo/client";
 
 import { PageTitle } from '../../layout-components';
+import BatchList from 'components/BatchList';
 
 const GQL_PROJECT = gql`
-  query {
-    project(id:"seagate2") {
+  query Project($projectId:ID!){
+    project(id:$projectId) {
       id
-      batches {id, text}
+      batches {
+        id, 
+        queries {
+          id
+        }
+      }
     }
   }
 `;
@@ -23,10 +29,12 @@ const GQL_PROJECT = gql`
 export default function ProjectPage() {
   let { projectId } = useParams();
   console.log("Opening project", projectId)
-  const { loading, error, data } = useQuery(GQL_PROJECT);
+  const { loading, error, data } = useQuery(GQL_PROJECT, {
+    variables: { projectId },
+  });
   console.log(error, data)
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error!</p>;
+  if (error) return <p>Error! {error}</p>;
 
   return (
     <Fragment>
@@ -35,7 +43,7 @@ export default function ProjectPage() {
         titleDescription="This is a dashboard page example built using this template."
       />
 
-
+    <BatchList batches={data.project.batches}/>
     </Fragment>
   );
 }
