@@ -32,6 +32,7 @@ type Project {
 type Query {
   projects: [Project!]!
   project(id: ID!): Project!
+  batch(id: ID!, projectId: ID!): Batch
 }
 
 input NewBatch {

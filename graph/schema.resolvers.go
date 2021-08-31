@@ -62,6 +62,11 @@ func (r *queryResolver) Project(ctx context.Context, id string) (*model.Project,
 	return project, err
 }
 
+func (r *queryResolver) Batch(ctx context.Context, id string, projectID string) (*model.Batch, error) {
+	batch, err := r.DB.GetBatch(projectID, id)
+	return batch, err
+}
+
 // Batch returns generated.BatchResolver implementation.
 func (r *Resolver) Batch() generated.BatchResolver { return &batchResolver{r} }
 

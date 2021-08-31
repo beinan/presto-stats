@@ -11,6 +11,7 @@ import {
 
 import { PageTitle } from '../../layout-components';
 import BatchList from 'components/BatchList';
+import BatchComparison from 'components/BatchComparison';
 
 const GQL_PROJECT = gql`
   query Project($projectId:ID!){
@@ -20,6 +21,10 @@ const GQL_PROJECT = gql`
         id, 
         queries {
           id
+          jsonStats{
+            sql,
+            queryStats
+          }   
         }
       }
     }
@@ -44,6 +49,7 @@ export default function ProjectPage() {
       />
 
     <BatchList batches={data.project.batches}/>
+    <BatchComparison projectId={projectId}/>
     </Fragment>
   );
 }

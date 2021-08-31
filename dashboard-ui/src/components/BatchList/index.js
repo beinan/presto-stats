@@ -83,7 +83,7 @@ function BatchItemRender(props) {
 }
 
 export default function BatchList(props) {
-  let {batches} = props;
+  let {batches, projectId} = props;
   let batchItems = batches.map ((batch, index) => <BatchItem batch={batch} index={index+1}/>)
   return (
     <Fragment>
