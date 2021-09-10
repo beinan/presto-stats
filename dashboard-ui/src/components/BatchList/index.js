@@ -65,7 +65,7 @@ function BatchItemRender(props) {
             </td>
             <td className="text-center">
             <Label check>
-              <Input type="checkbox" id="checkbox2" checked={isActive}
+              <Input type="checkbox" id={"checkbox_" + index} checked={isActive}
                 onChange={(e) => setActive(e.target.checked)}/>{' '}
               Check me out
             </Label>

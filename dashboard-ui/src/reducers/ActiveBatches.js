@@ -28,10 +28,10 @@ export default function reducer(
   },
   action
 ) {
-  console.log("reducer starts:", state, action);
+  console.log("reducer starts for active Batch:", state, action);
   switch (action.type) {
     case TOGGLE_ACTIVE_BATCH:
-      console.log("Toggling batch from active list:", action.batch)
+      console.log("Toggling batch to active list:", action.batch)
       return {
         ...state,
         active_batches: addOrRemove(state.active_batches, action.batch)

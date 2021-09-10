@@ -24,11 +24,12 @@ import {
   TabContent
 } from 'reactstrap';
 import BatchDetail from 'components/BatchDetail';
+import ChartList from 'components/ChartList';
 
 function mapStateToProps(state) {
   const { active_batches } = state.ActiveBatches;
-  console.log("mapStateToProps for bache compare", state)
-  return { active_batches: active_batches }
+  console.log("mapStateToProps for batch compare", state)
+  return { active_batches }
 }
 
 export default connect(mapStateToProps, { addActiveBatch, removeActiveBatch })(BatchComparison)
@@ -42,7 +43,8 @@ function BatchComparison(props) {
     <Fragment>
       <SummaryCard active_batches={active_batches} />
       <BatchTabs active_batches={active_batches} projectId={projectId}/>
-      <GroupBySqlCard active_batches={active_batches} />
+      <ChartList/>
+      {/* <GroupBySqlCard active_batches={active_batches} /> */}
     </Fragment>
   )
 }
