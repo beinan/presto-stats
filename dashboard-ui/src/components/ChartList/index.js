@@ -45,8 +45,10 @@ function parseStrData(str_data) {
   }
   console.log("parse str data", str_data, typeof str_data)
   if (str_data.indexOf('B', str_data.length - 1) !== -1) {
+    //console.log("convert", str_data, convert(str_data.substr(0, str_data.length - 1)).from('B').to('GB').toFixed(2))
     return convert(str_data.substr(0, str_data.length - 1)).from('B').to('GB').toFixed(2)
   } else {
+    //console.log("convert", str_data, convert(parse(str_data)).from('ms').to('s').toFixed(2))
     //time duration
     return convert(parse(str_data)).from('ms').to('s').toFixed(2)
   }
@@ -80,19 +82,20 @@ function extractQueryStats(active_queries, properties) {
 
 }
 
-//extract json data from query_stats
-function extractOperatorSummary(active_queries, selected_prop) {
+//extract json data from operatorSummary
+function extractOperatorSummary(active_queries, selected_props) {
   let data_map = {}
   active_queries.forEach((query, index) => {
     query.jsonStats.queryStats.operatorSummaries
       .forEach(summary => {
-        if(!data_map[summary.operatorType]) {
-          data_map[summary.operatorType] = []
+        const key = summary.operatorType
+        if(!data_map[key]) {
+          data_map[key] = []
         }
-        if (data_map[summary.operatorType][index]) {
-          data_map[summary.operatorType][index] = 0
+        if (!data_map[key][index]) {
+          data_map[key][index] = 0
         } 
-        data_map[summary.operatorType][index] += parseStrData(summary[selected_prop])
+        data_map[key][index] += parseStrData(summary[selected_props])
       })
   })
   const series = Object.keys(data_map).map(prop => {return {name:prop, data:data_map[prop]}})
