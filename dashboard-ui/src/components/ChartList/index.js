@@ -69,7 +69,7 @@ function extractQueryStats(active_queries, properties) {
     return { options: options, series: [], prop_list: [] }
   }
   const series = active_queries.map((query, index) => {
-    const name = "Query #" + (index + 1)
+    const name = " Query #" + (index + 1) + " " + query.id
     const data = properties.map(prop => parseStrData(query.jsonStats.queryStats[prop]))
 
     return { name, data }
@@ -99,11 +99,12 @@ function extractOperatorSummary(active_queries, selected_props) {
       })
   })
   const series = Object.keys(data_map).map(prop => {return {name:prop, data:data_map[prop]}})
-  const query_titles = active_queries.map((query, index) => "Query #" + (index + 1))
+  const query_titles = active_queries.map((query, index) => "Query #" + (index + 1) + " " + query.id) 
   const options = {
     chart: {
       type: 'bar',
       stacked: true,
+
     },
     plotOptions: {
       bar: {
