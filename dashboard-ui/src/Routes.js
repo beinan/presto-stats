@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { LeftSidebar, PresentationLayout } from './layout-blueprints';
 
 import ProjectListPage from './pages/ProjectListPage';
+import ProjectPage from './pages/ProjectPage';
 
 
 const Routes = () => {
@@ -62,6 +63,9 @@ const Routes = () => {
                     path="/projects"
                     component={ProjectListPage}
                   />
+                  <Route path={`/project/:projectId`}>
+                    <ProjectPage />
+                  </Route>
                 </motion.div>
               </Switch>
             </LeftSidebar>
