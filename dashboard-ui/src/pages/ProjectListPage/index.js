@@ -73,14 +73,27 @@ function ProjectCard(props) {
         </CardBody>
         <div className="text-center py-4">
           <Link to={"/project/" + project.id}>
-            <Button  size="sm" color="primary" >
+            <Button size="sm" color="primary" className="m-2" >
               <span className="btn-wrapper--icon">
                 <FontAwesomeIcon icon={['far', 'eye']} />
               </span>
               <span className="btn-wrapper--label">Generate reports</span>
-              </Button>
+            </Button>
           </Link>
+
+          <Button size="sm" color="success" id="AddNewProjectTip" className="m-2"> 
+            <span className="btn-wrapper--icon">
+              <FontAwesomeIcon
+                icon={['fas', 'plus']}
+                className="opacity-8 font-size-xs"
+              />
+            </span>
+          </Button>
+          <UncontrolledTooltip target="AddNewProjectTip">
+            Create a new batch
+          </UncontrolledTooltip>
         </div>
+
       </div>
     </Card>
   )
@@ -97,7 +110,21 @@ export default function ProjectListPage() {
       <PageTitle
         titleHeading={"Project List "}
         titleDescription=""
-      />
+      >
+        <div className="d-flex align-items-center mt-3 mt-lg-0">
+          <Button size="sm" color="success" id="AddNewProjectTip">
+            <span className="btn-wrapper--icon">
+              <FontAwesomeIcon
+                icon={['fas', 'plus']}
+                className="opacity-8 font-size-xs"
+              />
+            </span>
+          </Button>
+          <UncontrolledTooltip target="AddNewProjectTip">
+            Create a new project
+          </UncontrolledTooltip>
+        </div>
+      </PageTitle>
       {projectCardList}
     </Fragment>
   );

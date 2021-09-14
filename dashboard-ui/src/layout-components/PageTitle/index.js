@@ -19,25 +19,7 @@ class PageTitle extends Component {
               </div>
             </div>
           </div>
-          <div className="d-flex align-items-center mt-3 mt-lg-0">
-            <Button
-              size="sm"
-              color="primary"
-              className="mx-0 mr-3 mr-lg-0 mx-lg-3">
-              <span className="btn-wrapper--label">View details</span>
-            </Button>
-            <Button size="sm" color="success" id="AddEntryTooltip20">
-              <span className="btn-wrapper--icon">
-                <FontAwesomeIcon
-                  icon={['fas', 'plus']}
-                  className="opacity-8 font-size-xs"
-                />
-              </span>
-            </Button>
-            <UncontrolledTooltip target="AddEntryTooltip20">
-              Add new entry
-            </UncontrolledTooltip>
-          </div>
+          {this.props.children}
         </div>
       </Fragment>
     );
