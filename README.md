@@ -5,7 +5,7 @@ The backend service is based on https://github.com/99designs/gqlgen
 
 ### Start the server
 ```shell
-go run server.go
+go run server.go -dataPath=${stats_data_path}
 ```
 
 ### Play Ground of GraphQL

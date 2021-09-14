@@ -1,9 +1,10 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"alluxio.com/presto-stats/dashboard-ui/storage"
 	"alluxio.com/presto-stats/graph"
@@ -12,21 +13,20 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 )
 
-const defaultPort = "8888"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
 
-	db := storage.LocalFileDB{Root: "/Users/beinan/w/stats_data"}
+	dataPathFlag := flag.String("dataPath", "./data", "path to the stats data")
+	portFlag := flag.Int("port", 8888, "GraphQL service port")
+
+	flag.Parse()
+
+	db := storage.LocalFileDB{Root: *dataPathFlag}
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{DB: db}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("connect to http://localhost:%d/ for GraphQL playground", *portFlag)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *portFlag), nil))
 }
