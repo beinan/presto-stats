@@ -35,13 +35,16 @@ type Query {
   batch(id: ID!, projectId: ID!): Batch
 }
 
+type Mutation {
+  newProject(input: NewProject): Project!
+}
+
 input NewBatch {
   text: String!
   projectName: String!
 }
 
 input NewProject {
-  name: String!
-  userId: String!
+  id: String!
 }
 

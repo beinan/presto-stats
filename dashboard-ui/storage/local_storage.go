@@ -2,7 +2,9 @@ package storage
 
 import (
 	"encoding/json"
+	"io/fs"
 	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 
@@ -45,6 +47,16 @@ func (db *LocalFileDB) GetProject(projectID string) (*model.Project, error) {
 		}
 	}
 	return &model.Project{ID: projectID, BatchIDs: batchIDs}, nil
+}
+
+func (db *LocalFileDB) CreateProject(projectID string) error {
+	path := path.Join(db.Root, projectID)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, 0755)
+		return err
+	} else {
+		return fs.ErrExist
+	}
 }
 
 func (db *LocalFileDB) GetBatches(projectID string) ([]*model.Batch, error) {

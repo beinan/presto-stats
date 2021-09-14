@@ -16,6 +16,5 @@ type NewBatch struct {
 }
 
 type NewProject struct {
-	Name   string `json:"name"`
-	UserID string `json:"userId"`
+	ID string `json:"id"`
 }

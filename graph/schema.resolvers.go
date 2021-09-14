@@ -24,6 +24,15 @@ func (r *batchResolver) Queries(ctx context.Context, obj *model.Batch) ([]*model
 	return results, nil
 }
 
+func (r *mutationResolver) NewProject(ctx context.Context, input *model.NewProject) (*model.Project, error) {
+	err := r.DB.CreateProject(input.ID)
+	if err != nil {
+		return nil, err
+	}
+	project, err := r.DB.GetProject(input.ID)
+	return project, err
+}
+
 func (r *prestoQueryResolver) Batch(ctx context.Context, obj *model.PrestoQuery) (*model.Batch, error) {
 	batch, err := r.DB.GetBatch(obj.ProjectID, obj.BatchID)
 	return batch, err
@@ -70,6 +79,9 @@ func (r *queryResolver) Batch(ctx context.Context, id string, projectID string) 
 // Batch returns generated.BatchResolver implementation.
 func (r *Resolver) Batch() generated.BatchResolver { return &batchResolver{r} }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 // PrestoQuery returns generated.PrestoQueryResolver implementation.
 func (r *Resolver) PrestoQuery() generated.PrestoQueryResolver { return &prestoQueryResolver{r} }
 
@@ -80,6 +92,7 @@ func (r *Resolver) Project() generated.ProjectResolver { return &projectResolver
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type batchResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
 type prestoQueryResolver struct{ *Resolver }
 type projectResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
