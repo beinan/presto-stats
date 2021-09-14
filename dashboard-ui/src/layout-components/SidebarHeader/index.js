@@ -12,14 +12,14 @@ class SidebarHeader extends Component {
           <div className="nav-logo">
             <Link
               to="/DashboardDefault"
-              title="Bamburgh React Admin Dashboard with Reactstrap Free">
+              title="Presto Stats Visualizer">
               <i>
                 <img
-                  alt="Bamburgh React Admin Dashboard with Reactstrap Free"
+                  alt="Presto Stats Visualizer"
                   src={projectLogo}
                 />
               </i>
-              <span>Bamburgh</span>
+              <span>Presto Stats</span>
             </Link>
           </div>
         </div>

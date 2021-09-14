@@ -1,9 +1,9 @@
 {
   "name": "presto-stats",
   "version": "1.1.0",
-  "title": "Bamburgh React Admin Dashboard with Reactstrap Free",
+  "title": "Presto Stats",
   "homepage": "https://alluxio.com",
-  "description": "This admin template is the perfect lite solution for building React powered applications or presentation websites.",
+  "description": "Presto Stats Visualizer",
   "author": {
     "name": "Beinan",
     "url": "https://github.com/beinan"
