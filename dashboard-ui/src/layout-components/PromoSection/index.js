@@ -21,28 +21,6 @@ export default class PromoSection extends Component {
                   />
                 </a>
               </span>
-              <a
-                className="d-50 transition-none bg-neutral-danger text-danger my-2 p-0 d-inline-block shadow-none text-center rounded-sm"
-                href="https://docs.uifort.com/bamburgh-react-admin-dashboard-reactstrap-free-docs"
-                rel="noopener noreferrer"
-                target="_blank"
-                id="ViewDocsTooltip">
-                <FontAwesomeIcon
-                  icon={['far', 'life-ring']}
-                  className="font-size-lg"
-                />
-              </a>
-              <a
-                className="d-50 transition-none bg-neutral-success text-success p-0 d-inline-block shadow-none text-center rounded-sm"
-                href="https://uifort.com/template/bamburgh-react-admin-dashboard-reactstrap-free"
-                rel="noopener noreferrer"
-                target="_blank"
-                id="ProductLandingTooltip">
-                <FontAwesomeIcon
-                  icon={['fas', 'info-circle']}
-                  className="font-size-lg"
-                />
-              </a>
               <UncontrolledTooltip
                 target="StayUpdatedTooltip"
                 container=".promo-section-buttons"

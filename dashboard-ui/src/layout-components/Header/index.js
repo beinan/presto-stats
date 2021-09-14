@@ -32,24 +32,6 @@ class Header extends Component {
                 <span className="hamburger-inner" />
               </span>
             </button>
-            <Button
-              tag="a"
-              href="https://uifort.com/template/bamburgh-react-admin-dashboard-reactstrap-free"
-              target="_blank"
-              size="sm"
-              color="neutral-success"
-              className="ml-3 mr-3 btn-transition-none">
-              Download now
-            </Button>
-            <Button
-              tag="a"
-              href="https://uifort.com/template/bamburgh-react-admin-dashboard-reactstrap-pro"
-              target="_blank"
-              size="sm"
-              color="neutral-warning"
-              className="transition-none">
-              View PRO Version
-            </Button>
           </div>
           <div className="app-header--pane">
             <HeaderUserbox />

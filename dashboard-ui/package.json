@@ -1,16 +1,16 @@
 {
-  "name": "bamburgh-react-admin-dashboard-reactstrap-free",
+  "name": "presto-stats",
   "version": "1.1.0",
   "title": "Bamburgh React Admin Dashboard with Reactstrap Free",
-  "homepage": "https://demo.uifort.com/bamburgh-react-admin-dashboard-reactstrap-free",
+  "homepage": "https://alluxio.com",
   "description": "This admin template is the perfect lite solution for building React powered applications or presentation websites.",
   "author": {
-    "name": "UiFort.com",
-    "url": "https://uifort.com"
+    "name": "Beinan",
+    "url": "https://github.com/beinan"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/uifort/bamburgh-react-admin-dashboard-reactstrap-free"
+    "url": "git@github.com:beinan/presto-stats.git"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "1.2.27",
