@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState} from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -14,8 +14,10 @@ import {
   Nav,
   NavItem,
   NavLink,
-  TabPane,
-  TabContent
+  Modal,
+  InputGroupText,
+  Input,
+  FormGroup
 } from 'reactstrap';
 
 import { Link } from "react-router-dom";
@@ -81,7 +83,7 @@ function ProjectCard(props) {
             </Button>
           </Link>
 
-          <Button size="sm" color="success" id="AddNewProjectTip" className="m-2"> 
+          <Button size="sm" color="success" id="AddNewBatchTip" className="m-2">
             <span className="btn-wrapper--icon">
               <FontAwesomeIcon
                 icon={['fas', 'plus']}
@@ -89,7 +91,7 @@ function ProjectCard(props) {
               />
             </span>
           </Button>
-          <UncontrolledTooltip target="AddNewProjectTip">
+          <UncontrolledTooltip target="AddNewBatchTip">
             Create a new batch
           </UncontrolledTooltip>
         </div>
@@ -101,6 +103,9 @@ function ProjectCard(props) {
 
 export default function ProjectListPage() {
   const { loading, error, data } = useQuery(GQL_PROJECT_LIST);
+  const [isNewProjectModalOpen, setNewProjectModalOpen] = useState(false);
+  const toggleNewProjectModal = () => setNewProjectModalOpen(!isNewProjectModalOpen);
+
   console.log("projectListPage", loading, error, data)
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error!</p>;
@@ -112,7 +117,7 @@ export default function ProjectListPage() {
         titleDescription=""
       >
         <div className="d-flex align-items-center mt-3 mt-lg-0">
-          <Button size="sm" color="success" id="AddNewProjectTip">
+          <Button size="sm" color="success" id="AddNewProjectTip" onClick={toggleNewProjectModal}>
             <span className="btn-wrapper--icon">
               <FontAwesomeIcon
                 icon={['fas', 'plus']}
@@ -123,6 +128,34 @@ export default function ProjectListPage() {
           <UncontrolledTooltip target="AddNewProjectTip">
             Create a new project
           </UncontrolledTooltip>
+          <Modal zIndex={2000} centered isOpen={isNewProjectModalOpen} toggle={toggleNewProjectModal}>
+            <div>
+              <Card className="bg-secondary shadow-none border-0">
+                <div className="card-body px-lg-5 py-lg-5">
+                  <div className="text-center mb-4">
+                    <small>Add new project</small>
+                  </div>
+                  <form>
+                    <div className="form-group mb-3">
+                      <div className="input-group input-group-alternative">
+                        <div className="input-group-prepend">
+                          <InputGroupText>
+                            <FontAwesomeIcon icon={['far', 'folder']} />
+                          </InputGroupText>
+                        </div>
+                        <Input placeholder="Project Name" type="text" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <Button color="second" className="mt-4">
+                        Create
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </Card>
+            </div>
+          </Modal>
         </div>
       </PageTitle>
       {projectCardList}
