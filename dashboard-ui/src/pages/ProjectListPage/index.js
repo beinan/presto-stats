@@ -1,4 +1,4 @@
-import React, { Fragment, useState} from 'react';
+import React, { Fragment, useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -23,6 +23,7 @@ import {
 import { Link } from "react-router-dom";
 
 import {
+  useMutation,
   useQuery,
   gql
 } from "@apollo/client";
@@ -43,7 +44,17 @@ const GQL_PROJECT_LIST = gql`
   }
 `;
 
+const GQL_NEW_PROJECT = gql`
+  mutation NewProject($newProject:NewProject){
+    newProject(input: $newProject) {
+      id
+      batches {id}
+    }
+  }
+`;
+
 const color_class_list = ['info', 'danger', 'primary', 'success', 'warning']
+
 function ProjectCard(props) {
   const { project } = props
   const batch_icons = project.batches.map((batch, index) => (
@@ -101,6 +112,59 @@ function ProjectCard(props) {
   )
 }
 
+function NewProjectModal(props) {
+  const [projectId, setProjectId] = useState('');
+
+  const [createProject, { loading, error, data } ] = useMutation(GQL_NEW_PROJECT, {
+    refetchQueries: [
+      'Projects' // Query name
+    ],
+  });
+  
+  console.log("new project modal", loading, error, data)
+  let message = <p></p>
+  if (loading) message = <p>Loading...</p>;
+  if (error) message = <p>{"Error:" + error.message}</p>;
+
+  if (data) {
+    message = <p>Project created</p>;
+  }
+
+  return (
+    <Modal zIndex={2000} centered isOpen={props.isOpen} toggle={props.toggle}>
+      <div>
+        <Card className="bg-secondary shadow-none border-0">
+          <div className="card-body px-lg-5 py-lg-5">
+            <div className="text-center mb-4">
+              <small>Add new project</small>
+              {message}
+            </div>
+            <form>
+              <div className="form-group mb-3">
+                <div className="input-group input-group-alternative">
+                  <div className="input-group-prepend">
+                    <InputGroupText>
+                      <FontAwesomeIcon icon={['far', 'folder']} />
+                    </InputGroupText>
+                  </div>
+                  <Input placeholder="Project Name" type="text" value={projectId} onInput={e => setProjectId(e.target.value)}/>
+                </div>
+              </div>
+              <div className="text-center">
+                <Button color="second" className="mt-4" onClick={() => {
+                  createProject({variables:{newProject:{id:projectId}}});
+                  }}>
+                  Create
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Card>
+      </div>
+    </Modal>
+  )
+}
+
 export default function ProjectListPage() {
   const { loading, error, data } = useQuery(GQL_PROJECT_LIST);
   const [isNewProjectModalOpen, setNewProjectModalOpen] = useState(false);
@@ -128,34 +192,7 @@ export default function ProjectListPage() {
           <UncontrolledTooltip target="AddNewProjectTip">
             Create a new project
           </UncontrolledTooltip>
-          <Modal zIndex={2000} centered isOpen={isNewProjectModalOpen} toggle={toggleNewProjectModal}>
-            <div>
-              <Card className="bg-secondary shadow-none border-0">
-                <div className="card-body px-lg-5 py-lg-5">
-                  <div className="text-center mb-4">
-                    <small>Add new project</small>
-                  </div>
-                  <form>
-                    <div className="form-group mb-3">
-                      <div className="input-group input-group-alternative">
-                        <div className="input-group-prepend">
-                          <InputGroupText>
-                            <FontAwesomeIcon icon={['far', 'folder']} />
-                          </InputGroupText>
-                        </div>
-                        <Input placeholder="Project Name" type="text" />
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <Button color="second" className="mt-4">
-                        Create
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-              </Card>
-            </div>
-          </Modal>
+          <NewProjectModal isOpen={isNewProjectModalOpen} toggle={toggleNewProjectModal}/>
         </div>
       </PageTitle>
       {projectCardList}
