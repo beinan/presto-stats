@@ -37,11 +37,12 @@ type Query {
 
 type Mutation {
   newProject(input: NewProject): Project!
+  newBatch(input: NewBatch): Batch!
 }
 
 input NewBatch {
-  text: String!
-  projectName: String!
+  id: String!
+  projectId: String!
 }
 
 input NewProject {

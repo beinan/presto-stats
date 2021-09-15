@@ -61,6 +61,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		NewBatch   func(childComplexity int, input *model.NewBatch) int
 		NewProject func(childComplexity int, input *model.NewProject) int
 	}
 
@@ -88,6 +89,7 @@ type BatchResolver interface {
 }
 type MutationResolver interface {
 	NewProject(ctx context.Context, input *model.NewProject) (*model.Project, error)
+	NewBatch(ctx context.Context, input *model.NewBatch) (*model.Batch, error)
 }
 type PrestoQueryResolver interface {
 	Batch(ctx context.Context, obj *model.PrestoQuery) (*model.Batch, error)
@@ -172,6 +174,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.JSONStats.State(childComplexity), true
+
+	case "Mutation.newBatch":
+		if e.complexity.Mutation.NewBatch == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newBatch_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewBatch(childComplexity, args["input"].(*model.NewBatch)), true
 
 	case "Mutation.newProject":
 		if e.complexity.Mutation.NewProject == nil {
@@ -354,11 +368,12 @@ type Query {
 
 type Mutation {
   newProject(input: NewProject): Project!
+  newBatch(input: NewBatch): Batch!
 }
 
 input NewBatch {
-  text: String!
-  projectName: String!
+  id: String!
+  projectId: String!
 }
 
 input NewProject {
@@ -372,6 +387,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_newBatch_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.NewBatch
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalONewBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewBatch(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_newProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -791,6 +821,48 @@ func (ec *executionContext) _Mutation_newProject(ctx context.Context, field grap
 	res := resTmp.(*model.Project)
 	fc.Result = res
 	return ec.marshalNProject2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_newBatch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_newBatch_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().NewBatch(rctx, args["input"].(*model.NewBatch))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Batch)
+	fc.Result = res
+	return ec.marshalNBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐBatch(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PrestoQuery_id(ctx context.Context, field graphql.CollectedField, obj *model.PrestoQuery) (ret graphql.Marshaler) {
@@ -2248,19 +2320,19 @@ func (ec *executionContext) unmarshalInputNewBatch(ctx context.Context, obj inte
 
 	for k, v := range asMap {
 		switch k {
-		case "text":
+		case "id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
-			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "projectName":
+		case "projectId":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectName"))
-			it.ProjectName, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			it.ProjectID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2408,6 +2480,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "newProject":
 			out.Values[i] = ec._Mutation_newProject(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "newBatch":
+			out.Values[i] = ec._Mutation_newBatch(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3313,6 +3390,14 @@ func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.Selecti
 		return graphql.Null
 	}
 	return graphql.MarshalMap(v)
+}
+
+func (ec *executionContext) unmarshalONewBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewBatch(ctx context.Context, v interface{}) (*model.NewBatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputNewBatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalONewProject2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐNewProject(ctx context.Context, v interface{}) (*model.NewProject, error) {

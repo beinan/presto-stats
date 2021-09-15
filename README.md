@@ -13,11 +13,11 @@ Visit http://localhost:8888/
 
 
 ### Define GraphQL Schema
-The schema is defined at `${project_root}/graph.schema.graphqls`
+The schema is defined at `${project_root}/graph/schema.graphqls`
 More details: https://graphql.org/
 
 ### Generate GraphQL code
-Run the command below once you finish the change on `${project_root}/graph.schema.graphqls`
+Run the command below once you finish the change on `${project_root}/graph/schema.graphqls`
 
 ```shell
 go run github.com/99designs/gqlgen generate

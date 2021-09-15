@@ -11,8 +11,8 @@ type JSONStats struct {
 }
 
 type NewBatch struct {
-	Text        string `json:"text"`
-	ProjectName string `json:"projectName"`
+	ID        string `json:"id"`
+	ProjectID string `json:"projectId"`
 }
 
 type NewProject struct {

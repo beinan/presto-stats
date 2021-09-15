@@ -59,6 +59,16 @@ func (db *LocalFileDB) CreateProject(projectID string) error {
 	}
 }
 
+func (db *LocalFileDB) CreateBatch(projectID string, batchID string) error {
+	path := path.Join(db.Root, projectID, batchID)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, 0755)
+		return err
+	} else {
+		return fs.ErrExist
+	}
+}
+
 func (db *LocalFileDB) GetBatches(projectID string) ([]*model.Batch, error) {
 	subFolders, err := ioutil.ReadDir(path.Join(db.Root, projectID))
 	if err != nil {

@@ -33,6 +33,15 @@ func (r *mutationResolver) NewProject(ctx context.Context, input *model.NewProje
 	return project, err
 }
 
+func (r *mutationResolver) NewBatch(ctx context.Context, input *model.NewBatch) (*model.Batch, error) {
+	err := r.DB.CreateBatch(input.ProjectID, input.ID)
+	if err != nil {
+		return nil, err
+	}
+	batch, err := r.DB.GetBatch(input.ProjectID, input.ID)
+	return batch, err
+}
+
 func (r *prestoQueryResolver) Batch(ctx context.Context, obj *model.PrestoQuery) (*model.Batch, error) {
 	batch, err := r.DB.GetBatch(obj.ProjectID, obj.BatchID)
 	return batch, err
