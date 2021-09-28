@@ -8,4 +8,5 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.1 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210717090056-b2cc3a287149 // indirect
 	github.com/vektah/gqlparser/v2 v2.1.0 // indirect
+	golang.org/x/tools/gopls v0.7.2 // indirect
 )

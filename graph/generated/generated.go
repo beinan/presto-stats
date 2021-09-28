@@ -53,11 +53,12 @@ type ComplexityRoot struct {
 	}
 
 	JSONStats struct {
-		JSON       func(childComplexity int) int
-		QueryStats func(childComplexity int) int
-		SQL        func(childComplexity int) int
-		Session    func(childComplexity int) int
-		State      func(childComplexity int) int
+		JSON        func(childComplexity int) int
+		OutputStage func(childComplexity int) int
+		QueryStats  func(childComplexity int) int
+		SQL         func(childComplexity int) int
+		Session     func(childComplexity int) int
+		State       func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -80,6 +81,17 @@ type ComplexityRoot struct {
 		Batch    func(childComplexity int, id string, projectID string) int
 		Project  func(childComplexity int, id string) int
 		Projects func(childComplexity int) int
+	}
+
+	Stage struct {
+		AvgBlockedTime   func(childComplexity int) int
+		AvgCPUTime       func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Tasks            func(childComplexity int) int
+		TotalBlockedTime func(childComplexity int) int
+		TotalCPUTime     func(childComplexity int) int
+		TotalDrivers     func(childComplexity int) int
+		TotalTasks       func(childComplexity int) int
 	}
 }
 
@@ -146,6 +158,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.JSONStats.JSON(childComplexity), true
+
+	case "JsonStats.outputStage":
+		if e.complexity.JSONStats.OutputStage == nil {
+			break
+		}
+
+		return e.complexity.JSONStats.OutputStage(childComplexity), true
 
 	case "JsonStats.queryStats":
 		if e.complexity.JSONStats.QueryStats == nil {
@@ -265,6 +284,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Projects(childComplexity), true
 
+	case "Stage.avgBlockedTime":
+		if e.complexity.Stage.AvgBlockedTime == nil {
+			break
+		}
+
+		return e.complexity.Stage.AvgBlockedTime(childComplexity), true
+
+	case "Stage.avgCpuTime":
+		if e.complexity.Stage.AvgCPUTime == nil {
+			break
+		}
+
+		return e.complexity.Stage.AvgCPUTime(childComplexity), true
+
+	case "Stage.id":
+		if e.complexity.Stage.ID == nil {
+			break
+		}
+
+		return e.complexity.Stage.ID(childComplexity), true
+
+	case "Stage.tasks":
+		if e.complexity.Stage.Tasks == nil {
+			break
+		}
+
+		return e.complexity.Stage.Tasks(childComplexity), true
+
+	case "Stage.totalBlockedTime":
+		if e.complexity.Stage.TotalBlockedTime == nil {
+			break
+		}
+
+		return e.complexity.Stage.TotalBlockedTime(childComplexity), true
+
+	case "Stage.totalCpuTime":
+		if e.complexity.Stage.TotalCPUTime == nil {
+			break
+		}
+
+		return e.complexity.Stage.TotalCPUTime(childComplexity), true
+
+	case "Stage.totalDrivers":
+		if e.complexity.Stage.TotalDrivers == nil {
+			break
+		}
+
+		return e.complexity.Stage.TotalDrivers(childComplexity), true
+
+	case "Stage.totalTasks":
+		if e.complexity.Stage.TotalTasks == nil {
+			break
+		}
+
+		return e.complexity.Stage.TotalTasks(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -347,6 +422,7 @@ type JsonStats {
   queryStats: Map
   session: Map
   json: Map
+  outputStage: Stage
 }
 
 type Batch {
@@ -380,7 +456,16 @@ input NewProject {
   id: String!
 }
 
-`, BuiltIn: false},
+type Stage {
+  id: ID!
+  totalDrivers: Int!
+  totalCpuTime: String!
+  avgCpuTime: Float!
+  totalBlockedTime: String!
+  avgBlockedTime: Float!
+  totalTasks: Int!
+  tasks: Map
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -779,6 +864,38 @@ func (ec *executionContext) _JsonStats_json(ctx context.Context, field graphql.C
 	res := resTmp.(map[string]interface{})
 	fc.Result = res
 	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JsonStats_outputStage(ctx context.Context, field graphql.CollectedField, obj *model.JSONStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "JsonStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OutputStage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Stage)
+	fc.Result = res
+	return ec.marshalOStage2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐStage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_newProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1225,6 +1342,283 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	res := resTmp.(*introspection.Schema)
 	fc.Result = res
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_id(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_totalDrivers(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalDrivers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_totalCpuTime(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCPUTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_avgCpuTime(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvgCPUTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_totalBlockedTime(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalBlockedTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_avgBlockedTime(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvgBlockedTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_totalTasks(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalTasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Stage_tasks(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Stage",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tasks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]interface{})
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2452,6 +2846,8 @@ func (ec *executionContext) _JsonStats(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._JsonStats_session(ctx, field, obj)
 		case "json":
 			out.Values[i] = ec._JsonStats_json(ctx, field, obj)
+		case "outputStage":
+			out.Values[i] = ec._JsonStats_outputStage(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2653,6 +3049,65 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var stageImplementors = []string{"Stage"}
+
+func (ec *executionContext) _Stage(ctx context.Context, sel ast.SelectionSet, obj *model.Stage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, stageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Stage")
+		case "id":
+			out.Values[i] = ec._Stage_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalDrivers":
+			out.Values[i] = ec._Stage_totalDrivers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCpuTime":
+			out.Values[i] = ec._Stage_totalCpuTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "avgCpuTime":
+			out.Values[i] = ec._Stage_avgCpuTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalBlockedTime":
+			out.Values[i] = ec._Stage_totalBlockedTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "avgBlockedTime":
+			out.Values[i] = ec._Stage_avgBlockedTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalTasks":
+			out.Values[i] = ec._Stage_totalTasks(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tasks":
+			out.Values[i] = ec._Stage_tasks(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2975,6 +3430,21 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloat(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2982,6 +3452,21 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3406,6 +3891,13 @@ func (ec *executionContext) unmarshalONewProject2ᚖalluxioᚗcomᚋprestoᚑsta
 	}
 	res, err := ec.unmarshalInputNewProject(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOStage2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐStage(ctx context.Context, sel ast.SelectionSet, v *model.Stage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Stage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

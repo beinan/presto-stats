@@ -54,6 +54,7 @@ func (r *prestoQueryResolver) JSONStats(ctx context.Context, obj *model.PrestoQu
 	}
 	stats := json["queryStats"].(map[string]interface{})
 	session := json["session"].(map[string]interface{})
+
 	return &model.JSONStats{
 		JSON:       json,
 		State:      json["state"].(string),

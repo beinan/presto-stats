@@ -16,6 +16,7 @@ type JsonStats {
   queryStats: Map
   session: Map
   json: Map
+  outputStage: Stage
 }
 
 type Batch {
@@ -49,3 +50,13 @@ input NewProject {
   id: String!
 }
 
+type Stage {
+  id: ID!
+  totalDrivers: Int!
+  totalCpuTime: String!
+  avgCpuTime: Float!
+  totalBlockedTime: String!
+  avgBlockedTime: Float!
+  totalTasks: Int!
+  tasks: Map
+}

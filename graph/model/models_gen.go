@@ -3,11 +3,12 @@
 package model
 
 type JSONStats struct {
-	State      string                 `json:"state"`
-	SQL        string                 `json:"sql"`
-	QueryStats map[string]interface{} `json:"queryStats"`
-	Session    map[string]interface{} `json:"session"`
-	JSON       map[string]interface{} `json:"json"`
+	State       string                 `json:"state"`
+	SQL         string                 `json:"sql"`
+	QueryStats  map[string]interface{} `json:"queryStats"`
+	Session     map[string]interface{} `json:"session"`
+	JSON        map[string]interface{} `json:"json"`
+	OutputStage *Stage                 `json:"outputStage"`
 }
 
 type NewBatch struct {
@@ -17,4 +18,15 @@ type NewBatch struct {
 
 type NewProject struct {
 	ID string `json:"id"`
+}
+
+type Stage struct {
+	ID               string                 `json:"id"`
+	TotalDrivers     int                    `json:"totalDrivers"`
+	TotalCPUTime     string                 `json:"totalCpuTime"`
+	AvgCPUTime       float64                `json:"avgCpuTime"`
+	TotalBlockedTime string                 `json:"totalBlockedTime"`
+	AvgBlockedTime   float64                `json:"avgBlockedTime"`
+	TotalTasks       int                    `json:"totalTasks"`
+	Tasks            map[string]interface{} `json:"tasks"`
 }
