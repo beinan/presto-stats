@@ -16,7 +16,7 @@ type JsonStats {
   queryStats: Map
   session: Map
   json: Map
-  outputStage: Stage
+  stages: [Stage!]!
 }
 
 type Batch {
@@ -58,5 +58,42 @@ type Stage {
   totalBlockedTime: String!
   avgBlockedTime: Float!
   totalTasks: Int!
-  tasks: Map
+  tasks: [Task!]!
+}
+
+type Task {
+  id: ID!
+  createTime: String!
+  endTime: String!
+  elapsedTime: String!
+  totalDrivers: Int!
+  totalCpuTime: String!
+  avgCpuTime: Float!
+  totalBlockedTime: String!
+  avgBlockedTime: Float!
+  totalPipelines: Int!
+  pipelines: [Pipeline!]!
+}
+
+type Pipeline {
+  id: ID!
+  firstStartTime: String!
+  lastEndTime: String!
+  totalDrivers: Int!
+  totalCpuTime: String!
+  avgCpuTime: Float!
+  totalBlockedTime: String!
+  avgBlockedTime: Float!
+  totalOperators: Int!
+  operators: [Operator!]!
+}
+
+type Operator {
+  id: ID!
+  operatorType: String!
+  totalDrivers: Int!
+  addInputWall: String!
+  getOutputWall: String!
+  finishWall: String!
+  avgWall: Float!
 }

@@ -3,12 +3,12 @@
 package model
 
 type JSONStats struct {
-	State       string                 `json:"state"`
-	SQL         string                 `json:"sql"`
-	QueryStats  map[string]interface{} `json:"queryStats"`
-	Session     map[string]interface{} `json:"session"`
-	JSON        map[string]interface{} `json:"json"`
-	OutputStage *Stage                 `json:"outputStage"`
+	State      string                 `json:"state"`
+	SQL        string                 `json:"sql"`
+	QueryStats map[string]interface{} `json:"queryStats"`
+	Session    map[string]interface{} `json:"session"`
+	JSON       map[string]interface{} `json:"json"`
+	Stages     []*Stage               `json:"stages"`
 }
 
 type NewBatch struct {
@@ -20,13 +20,50 @@ type NewProject struct {
 	ID string `json:"id"`
 }
 
+type Operator struct {
+	ID            string  `json:"id"`
+	OperatorType  string  `json:"operatorType"`
+	TotalDrivers  int     `json:"totalDrivers"`
+	AddInputWall  string  `json:"addInputWall"`
+	GetOutputWall string  `json:"getOutputWall"`
+	FinishWall    string  `json:"finishWall"`
+	AvgWall       float64 `json:"avgWall"`
+}
+
+type Pipeline struct {
+	ID               string      `json:"id"`
+	FirstStartTime   string      `json:"firstStartTime"`
+	LastEndTime      string      `json:"lastEndTime"`
+	TotalDrivers     int         `json:"totalDrivers"`
+	TotalCPUTime     string      `json:"totalCpuTime"`
+	AvgCPUTime       float64     `json:"avgCpuTime"`
+	TotalBlockedTime string      `json:"totalBlockedTime"`
+	AvgBlockedTime   float64     `json:"avgBlockedTime"`
+	TotalOperators   int         `json:"totalOperators"`
+	Operators        []*Operator `json:"operators"`
+}
+
 type Stage struct {
-	ID               string                 `json:"id"`
-	TotalDrivers     int                    `json:"totalDrivers"`
-	TotalCPUTime     string                 `json:"totalCpuTime"`
-	AvgCPUTime       float64                `json:"avgCpuTime"`
-	TotalBlockedTime string                 `json:"totalBlockedTime"`
-	AvgBlockedTime   float64                `json:"avgBlockedTime"`
-	TotalTasks       int                    `json:"totalTasks"`
-	Tasks            map[string]interface{} `json:"tasks"`
+	ID               string  `json:"id"`
+	TotalDrivers     int     `json:"totalDrivers"`
+	TotalCPUTime     string  `json:"totalCpuTime"`
+	AvgCPUTime       float64 `json:"avgCpuTime"`
+	TotalBlockedTime string  `json:"totalBlockedTime"`
+	AvgBlockedTime   float64 `json:"avgBlockedTime"`
+	TotalTasks       int     `json:"totalTasks"`
+	Tasks            []*Task `json:"tasks"`
+}
+
+type Task struct {
+	ID               string      `json:"id"`
+	CreateTime       string      `json:"createTime"`
+	EndTime          string      `json:"endTime"`
+	ElapsedTime      string      `json:"elapsedTime"`
+	TotalDrivers     int         `json:"totalDrivers"`
+	TotalCPUTime     string      `json:"totalCpuTime"`
+	AvgCPUTime       float64     `json:"avgCpuTime"`
+	TotalBlockedTime string      `json:"totalBlockedTime"`
+	AvgBlockedTime   float64     `json:"avgBlockedTime"`
+	TotalPipelines   int         `json:"totalPipelines"`
+	Pipelines        []*Pipeline `json:"pipelines"`
 }
