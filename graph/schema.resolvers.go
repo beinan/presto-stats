@@ -59,6 +59,10 @@ func (r *prestoQueryResolver) JSONStats(ctx context.Context, obj *model.PrestoQu
 	stages := []*model.Stage{}
 	pStages := &stages
 	GetStages(json["outputStage"].(map[string]interface{}), pStages)
+	fmt.Println(obj.ID, "stage pointers:")
+	for _, pstage := range stages {
+		fmt.Printf("%s %p %v\n", obj.ID, pstage, pstage)
+	}
 	return &model.JSONStats{
 		JSON:       json,
 		State:      json["state"].(string),
@@ -154,7 +158,7 @@ func GetOperator(json map[string]interface{}) *model.Operator {
 	finishWall := json["finishWall"].(string)
 	avgWall := (HumanTime2ms(addInputWall) + HumanTime2ms(getOutputWall) + HumanTime2ms(finishWall)) / float64(totalDrivers)
 	return &model.Operator{
-		ID:            opId,
+		OpID:          opId,
 		OperatorType:  operatorType,
 		TotalDrivers:  totalDrivers,
 		AddInputWall:  addInputWall,
@@ -179,7 +183,7 @@ func GetPipeline(json map[string]interface{}) *model.Pipeline {
 		operators[i] = GetOperator(operatorSummaries[i].(map[string]interface{}))
 	}
 	return &model.Pipeline{
-		ID:               pplId,
+		PplID:            pplId,
 		FirstStartTime:   firstStartTime,
 		LastEndTime:      lastEndTime,
 		TotalDrivers:     totalDrivers,
@@ -211,7 +215,7 @@ func GetTask(stageId string, json map[string]interface{}) *model.Task {
 		pipelines[i] = GetPipeline(pipelinesSlice[i].(map[string]interface{}))
 	}
 	return &model.Task{
-		ID:               taskId,
+		TaskID:           taskId,
 		CreateTime:       createTime,
 		EndTime:          endTime,
 		ElapsedTime:      elapsedTime,
@@ -241,7 +245,7 @@ func GetStage(json map[string]interface{}) *model.Stage {
 	}
 
 	return &model.Stage{
-		ID:               stageId,
+		StageID:          stageId,
 		TotalDrivers:     totalDrivers,
 		TotalCPUTime:     totalCpuTime,
 		AvgCPUTime:       avgCpuTime,
@@ -251,7 +255,7 @@ func GetStage(json map[string]interface{}) *model.Stage {
 		Tasks:            tasks,
 	}
 }
-func GetStages(json map[string]interface{}, pStage *[]*model.Stage) {
+func GetStages(json map[string]interface{}, pStages *[]*model.Stage) {
 	pos := strings.LastIndex(json["stageId"].(string), ".")
 	stageId := json["stageId"].(string)[pos+1:]
 	stageStats := json["stageStats"].(map[string]interface{})
@@ -266,8 +270,8 @@ func GetStages(json map[string]interface{}, pStage *[]*model.Stage) {
 	for i := 0; i < totalTasks; i++ {
 		tasks[i] = GetTask(stageId, tasksSlice[i].(map[string]interface{}))
 	}
-	stage := model.Stage{
-		ID:               stageId,
+	pstage := &model.Stage{
+		StageID:          stageId,
 		TotalDrivers:     totalDrivers,
 		TotalCPUTime:     totalCpuTime,
 		AvgCPUTime:       avgCpuTime,
@@ -276,9 +280,9 @@ func GetStages(json map[string]interface{}, pStage *[]*model.Stage) {
 		TotalTasks:       totalTasks,
 		Tasks:            tasks,
 	}
-	*pStage = append(*pStage, &stage)
+	*pStages = append(*pStages, pstage)
 	subStagesSlice := json["subStages"].([]interface{})
 	for _, s := range subStagesSlice {
-		GetStages(s.(map[string]interface{}), pStage)
+		GetStages(s.(map[string]interface{}), pStages)
 	}
 }

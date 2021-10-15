@@ -21,7 +21,7 @@ type NewProject struct {
 }
 
 type Operator struct {
-	ID            string  `json:"id"`
+	OpID          string  `json:"op_id"`
 	OperatorType  string  `json:"operatorType"`
 	TotalDrivers  int     `json:"totalDrivers"`
 	AddInputWall  string  `json:"addInputWall"`
@@ -31,7 +31,7 @@ type Operator struct {
 }
 
 type Pipeline struct {
-	ID               string      `json:"id"`
+	PplID            string      `json:"ppl_id"`
 	FirstStartTime   string      `json:"firstStartTime"`
 	LastEndTime      string      `json:"lastEndTime"`
 	TotalDrivers     int         `json:"totalDrivers"`
@@ -44,7 +44,7 @@ type Pipeline struct {
 }
 
 type Stage struct {
-	ID               string  `json:"id"`
+	StageID          string  `json:"stage_id"`
 	TotalDrivers     int     `json:"totalDrivers"`
 	TotalCPUTime     string  `json:"totalCpuTime"`
 	AvgCPUTime       float64 `json:"avgCpuTime"`
@@ -55,7 +55,7 @@ type Stage struct {
 }
 
 type Task struct {
-	ID               string      `json:"id"`
+	TaskID           string      `json:"task_id"`
 	CreateTime       string      `json:"createTime"`
 	EndTime          string      `json:"endTime"`
 	ElapsedTime      string      `json:"elapsedTime"`

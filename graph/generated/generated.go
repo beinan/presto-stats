@@ -71,7 +71,7 @@ type ComplexityRoot struct {
 		AvgWall       func(childComplexity int) int
 		FinishWall    func(childComplexity int) int
 		GetOutputWall func(childComplexity int) int
-		ID            func(childComplexity int) int
+		OpID          func(childComplexity int) int
 		OperatorType  func(childComplexity int) int
 		TotalDrivers  func(childComplexity int) int
 	}
@@ -80,9 +80,9 @@ type ComplexityRoot struct {
 		AvgBlockedTime   func(childComplexity int) int
 		AvgCPUTime       func(childComplexity int) int
 		FirstStartTime   func(childComplexity int) int
-		ID               func(childComplexity int) int
 		LastEndTime      func(childComplexity int) int
 		Operators        func(childComplexity int) int
+		PplID            func(childComplexity int) int
 		TotalBlockedTime func(childComplexity int) int
 		TotalCPUTime     func(childComplexity int) int
 		TotalDrivers     func(childComplexity int) int
@@ -109,7 +109,7 @@ type ComplexityRoot struct {
 	Stage struct {
 		AvgBlockedTime   func(childComplexity int) int
 		AvgCPUTime       func(childComplexity int) int
-		ID               func(childComplexity int) int
+		StageID          func(childComplexity int) int
 		Tasks            func(childComplexity int) int
 		TotalBlockedTime func(childComplexity int) int
 		TotalCPUTime     func(childComplexity int) int
@@ -123,8 +123,8 @@ type ComplexityRoot struct {
 		CreateTime       func(childComplexity int) int
 		ElapsedTime      func(childComplexity int) int
 		EndTime          func(childComplexity int) int
-		ID               func(childComplexity int) int
 		Pipelines        func(childComplexity int) int
+		TaskID           func(childComplexity int) int
 		TotalBlockedTime func(childComplexity int) int
 		TotalCPUTime     func(childComplexity int) int
 		TotalDrivers     func(childComplexity int) int
@@ -283,12 +283,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operator.GetOutputWall(childComplexity), true
 
-	case "Operator.id":
-		if e.complexity.Operator.ID == nil {
+	case "Operator.op_id":
+		if e.complexity.Operator.OpID == nil {
 			break
 		}
 
-		return e.complexity.Operator.ID(childComplexity), true
+		return e.complexity.Operator.OpID(childComplexity), true
 
 	case "Operator.operatorType":
 		if e.complexity.Operator.OperatorType == nil {
@@ -325,13 +325,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pipeline.FirstStartTime(childComplexity), true
 
-	case "Pipeline.id":
-		if e.complexity.Pipeline.ID == nil {
-			break
-		}
-
-		return e.complexity.Pipeline.ID(childComplexity), true
-
 	case "Pipeline.lastEndTime":
 		if e.complexity.Pipeline.LastEndTime == nil {
 			break
@@ -345,6 +338,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pipeline.Operators(childComplexity), true
+
+	case "Pipeline.ppl_id":
+		if e.complexity.Pipeline.PplID == nil {
+			break
+		}
+
+		return e.complexity.Pipeline.PplID(childComplexity), true
 
 	case "Pipeline.totalBlockedTime":
 		if e.complexity.Pipeline.TotalBlockedTime == nil {
@@ -454,12 +454,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Stage.AvgCPUTime(childComplexity), true
 
-	case "Stage.id":
-		if e.complexity.Stage.ID == nil {
+	case "Stage.stage_id":
+		if e.complexity.Stage.StageID == nil {
 			break
 		}
 
-		return e.complexity.Stage.ID(childComplexity), true
+		return e.complexity.Stage.StageID(childComplexity), true
 
 	case "Stage.tasks":
 		if e.complexity.Stage.Tasks == nil {
@@ -531,19 +531,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Task.EndTime(childComplexity), true
 
-	case "Task.id":
-		if e.complexity.Task.ID == nil {
-			break
-		}
-
-		return e.complexity.Task.ID(childComplexity), true
-
 	case "Task.pipelines":
 		if e.complexity.Task.Pipelines == nil {
 			break
 		}
 
 		return e.complexity.Task.Pipelines(childComplexity), true
+
+	case "Task.task_id":
+		if e.complexity.Task.TaskID == nil {
+			break
+		}
+
+		return e.complexity.Task.TaskID(childComplexity), true
 
 	case "Task.totalBlockedTime":
 		if e.complexity.Task.TotalBlockedTime == nil {
@@ -690,7 +690,7 @@ input NewProject {
 }
 
 type Stage {
-  id: ID!
+  stage_id: ID!
   totalDrivers: Int!
   totalCpuTime: String!
   avgCpuTime: Float!
@@ -701,7 +701,7 @@ type Stage {
 }
 
 type Task {
-  id: ID!
+  task_id: ID!
   createTime: String!
   endTime: String!
   elapsedTime: String!
@@ -715,7 +715,7 @@ type Task {
 }
 
 type Pipeline {
-  id: ID!
+  ppl_id: ID!
   firstStartTime: String!
   lastEndTime: String!
   totalDrivers: Int!
@@ -728,7 +728,7 @@ type Pipeline {
 }
 
 type Operator {
-  id: ID!
+  op_id: ID!
   operatorType: String!
   totalDrivers: Int!
   addInputWall: String!
@@ -1255,7 +1255,7 @@ func (ec *executionContext) _Mutation_newBatch(ctx context.Context, field graphq
 	return ec.marshalNBatch2ᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐBatch(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Operator_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
+func (ec *executionContext) _Operator_op_id(ctx context.Context, field graphql.CollectedField, obj *model.Operator) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1273,7 +1273,7 @@ func (ec *executionContext) _Operator_id(ctx context.Context, field graphql.Coll
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.OpID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1500,7 +1500,7 @@ func (ec *executionContext) _Operator_avgWall(ctx context.Context, field graphql
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Pipeline_id(ctx context.Context, field graphql.CollectedField, obj *model.Pipeline) (ret graphql.Marshaler) {
+func (ec *executionContext) _Pipeline_ppl_id(ctx context.Context, field graphql.CollectedField, obj *model.Pipeline) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1518,7 +1518,7 @@ func (ec *executionContext) _Pipeline_id(ctx context.Context, field graphql.Coll
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.PplID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2212,7 +2212,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Stage_id(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
+func (ec *executionContext) _Stage_stage_id(ctx context.Context, field graphql.CollectedField, obj *model.Stage) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2230,7 +2230,7 @@ func (ec *executionContext) _Stage_id(ctx context.Context, field graphql.Collect
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.StageID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2492,7 +2492,7 @@ func (ec *executionContext) _Stage_tasks(ctx context.Context, field graphql.Coll
 	return ec.marshalNTask2ᚕᚖalluxioᚗcomᚋprestoᚑstatsᚋgraphᚋmodelᚐTaskᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Task_id(ctx context.Context, field graphql.CollectedField, obj *model.Task) (ret graphql.Marshaler) {
+func (ec *executionContext) _Task_task_id(ctx context.Context, field graphql.CollectedField, obj *model.Task) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2510,7 +2510,7 @@ func (ec *executionContext) _Task_id(ctx context.Context, field graphql.Collecte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.TaskID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4165,8 +4165,8 @@ func (ec *executionContext) _Operator(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Operator")
-		case "id":
-			out.Values[i] = ec._Operator_id(ctx, field, obj)
+		case "op_id":
+			out.Values[i] = ec._Operator_op_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4222,8 +4222,8 @@ func (ec *executionContext) _Pipeline(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Pipeline")
-		case "id":
-			out.Values[i] = ec._Pipeline_id(ctx, field, obj)
+		case "ppl_id":
+			out.Values[i] = ec._Pipeline_ppl_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4459,8 +4459,8 @@ func (ec *executionContext) _Stage(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Stage")
-		case "id":
-			out.Values[i] = ec._Stage_id(ctx, field, obj)
+		case "stage_id":
+			out.Values[i] = ec._Stage_stage_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4521,8 +4521,8 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Task")
-		case "id":
-			out.Values[i] = ec._Task_id(ctx, field, obj)
+		case "task_id":
+			out.Values[i] = ec._Task_task_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

@@ -23,7 +23,7 @@ const GQL_PROJECT = gql`
           id
           jsonStats{
             sql,
-            queryStats
+            queryStats,
           }   
         }
       }

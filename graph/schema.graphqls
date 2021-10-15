@@ -51,7 +51,7 @@ input NewProject {
 }
 
 type Stage {
-  id: ID!
+  stage_id: ID!
   totalDrivers: Int!
   totalCpuTime: String!
   avgCpuTime: Float!
@@ -62,7 +62,7 @@ type Stage {
 }
 
 type Task {
-  id: ID!
+  task_id: ID!
   createTime: String!
   endTime: String!
   elapsedTime: String!
@@ -76,7 +76,7 @@ type Task {
 }
 
 type Pipeline {
-  id: ID!
+  ppl_id: ID!
   firstStartTime: String!
   lastEndTime: String!
   totalDrivers: Int!
@@ -89,7 +89,7 @@ type Pipeline {
 }
 
 type Operator {
-  id: ID!
+  op_id: ID!
   operatorType: String!
   totalDrivers: Int!
   addInputWall: String!
