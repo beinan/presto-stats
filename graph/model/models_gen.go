@@ -8,6 +8,7 @@ type JSONStats struct {
 	QueryStats map[string]interface{} `json:"queryStats"`
 	Session    map[string]interface{} `json:"session"`
 	JSON       map[string]interface{} `json:"json"`
+	Stages     []*Stage               `json:"stages"`
 }
 
 type NewBatch struct {
@@ -17,4 +18,52 @@ type NewBatch struct {
 
 type NewProject struct {
 	ID string `json:"id"`
+}
+
+type Operator struct {
+	OpID          string  `json:"op_id"`
+	OperatorType  string  `json:"operatorType"`
+	TotalDrivers  int     `json:"totalDrivers"`
+	AddInputWall  string  `json:"addInputWall"`
+	GetOutputWall string  `json:"getOutputWall"`
+	FinishWall    string  `json:"finishWall"`
+	AvgWall       float64 `json:"avgWall"`
+}
+
+type Pipeline struct {
+	PplID            string      `json:"ppl_id"`
+	FirstStartTime   string      `json:"firstStartTime"`
+	LastEndTime      string      `json:"lastEndTime"`
+	TotalDrivers     int         `json:"totalDrivers"`
+	TotalCPUTime     string      `json:"totalCpuTime"`
+	AvgCPUTime       float64     `json:"avgCpuTime"`
+	TotalBlockedTime string      `json:"totalBlockedTime"`
+	AvgBlockedTime   float64     `json:"avgBlockedTime"`
+	TotalOperators   int         `json:"totalOperators"`
+	Operators        []*Operator `json:"operators"`
+}
+
+type Stage struct {
+	StageID          string  `json:"stage_id"`
+	TotalDrivers     int     `json:"totalDrivers"`
+	TotalCPUTime     string  `json:"totalCpuTime"`
+	AvgCPUTime       float64 `json:"avgCpuTime"`
+	TotalBlockedTime string  `json:"totalBlockedTime"`
+	AvgBlockedTime   float64 `json:"avgBlockedTime"`
+	TotalTasks       int     `json:"totalTasks"`
+	Tasks            []*Task `json:"tasks"`
+}
+
+type Task struct {
+	TaskID           string      `json:"task_id"`
+	CreateTime       string      `json:"createTime"`
+	EndTime          string      `json:"endTime"`
+	ElapsedTime      string      `json:"elapsedTime"`
+	TotalDrivers     int         `json:"totalDrivers"`
+	TotalCPUTime     string      `json:"totalCpuTime"`
+	AvgCPUTime       float64     `json:"avgCpuTime"`
+	TotalBlockedTime string      `json:"totalBlockedTime"`
+	AvgBlockedTime   float64     `json:"avgBlockedTime"`
+	TotalPipelines   int         `json:"totalPipelines"`
+	Pipelines        []*Pipeline `json:"pipelines"`
 }

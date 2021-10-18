@@ -25,6 +25,7 @@ import {
 } from 'reactstrap';
 import BatchDetail from 'components/BatchDetail';
 import ChartList from 'components/ChartList';
+import StatsTable from 'components/StatsTable';
 
 function mapStateToProps(state) {
   const { active_batches } = state.ActiveBatches;
@@ -44,6 +45,7 @@ function BatchComparison(props) {
       <SummaryCard active_batches={active_batches} />
       <BatchTabs active_batches={active_batches} projectId={projectId}/>
       <ChartList/>
+      <StatsTable/>
       {/* <GroupBySqlCard active_batches={active_batches} /> */}
     </Fragment>
   )

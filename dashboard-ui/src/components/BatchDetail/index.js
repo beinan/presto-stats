@@ -31,7 +31,48 @@ const GQL_BATCH = gql`
         id
         jsonStats{
           sql,
-          queryStats
+          queryStats,
+          stages {
+            stage_id
+            totalDrivers
+            totalCpuTime
+            avgCpuTime
+            totalBlockedTime
+            avgBlockedTime
+            totalTasks
+            tasks {
+              task_id
+              createTime
+              endTime
+              elapsedTime
+              totalDrivers
+              totalCpuTime
+              avgCpuTime
+              totalBlockedTime
+              avgBlockedTime
+              totalPipelines
+              pipelines {
+                ppl_id
+                firstStartTime
+                lastEndTime
+                totalDrivers
+                totalCpuTime
+                avgCpuTime
+                totalBlockedTime
+                avgBlockedTime
+                totalOperators
+                operators {
+                  op_id
+                  operatorType
+                  totalDrivers
+                  addInputWall
+                  getOutputWall
+                  finishWall
+                  avgWall
+                }
+              }
+            }
+          }
         }   
       }
     } 
@@ -52,7 +93,7 @@ export default function BatchDetail(props) {
     console.log("gql batch detail error", error)
     return <p>Error</p>
   }
-    
+  
   return (
     <Fragment>
       <QueryList queryList={data.batch.queries} />
