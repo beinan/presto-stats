@@ -1,15 +1,17 @@
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment, useState } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { addActiveBatch, removeActiveBatch } from '../../reducers/ActiveBatches';
+import {
+  addActiveBatch,
+  removeActiveBatch
+} from '../../reducers/ActiveBatches';
 
 import { connect } from 'react-redux';
 
 import clsx from 'clsx';
 
 import {
-  Table,
   CardBody,
   Card,
   Row,
@@ -29,35 +31,36 @@ import StatsTable from 'components/StatsTable';
 
 function mapStateToProps(state) {
   const { active_batches } = state.ActiveBatches;
-  console.log("mapStateToProps for batch compare", state)
-  return { active_batches }
+  console.log('mapStateToProps for batch compare', state);
+  return { active_batches };
 }
 
-export default connect(mapStateToProps, { addActiveBatch, removeActiveBatch })(BatchComparison)
+export default connect(mapStateToProps, { addActiveBatch, removeActiveBatch })(
+  BatchComparison
+);
 
 function BatchComparison(props) {
-  let { active_batches, projectId} = props
-  console.log("batch compare", active_batches);
-  if (!active_batches)
-    return <p />
+  let { active_batches, projectId } = props;
+  console.log('batch compare', active_batches);
+  if (!active_batches) return <p />;
   return (
     <Fragment>
       <SummaryCard active_batches={active_batches} />
-      <BatchTabs active_batches={active_batches} projectId={projectId}/>
-      <ChartList/>
-      <StatsTable/>
+      <BatchTabs active_batches={active_batches} projectId={projectId} />
+      <ChartList />
+      <StatsTable />
       {/* <GroupBySqlCard active_batches={active_batches} /> */}
     </Fragment>
-  )
+  );
 }
 
-const color_class_list = ['info', 'danger']
+const color_class_list = ['info', 'danger'];
 
 function BatchTabs(props) {
-  const { active_batches, projectId} = props
+  const { active_batches, projectId } = props;
   const [activeTabId, setActive] = useState(0);
 
-  const nav_items = active_batches.map((batch, index) =>
+  const nav_items = active_batches.map((batch, index) => (
     <NavItem>
       <NavLink
         className={clsx({ active: activeTabId === index })}
@@ -67,60 +70,59 @@ function BatchTabs(props) {
         {batch.id}
       </NavLink>
     </NavItem>
-  )
-  const tab_items = active_batches.map((batch, index) =>
+  ));
+  const tab_items = active_batches.map((batch, index) => (
     <TabPane tabId={index}>
       <p className="mb-0 p-3">
-        <BatchDetail batchId={batch.id} projectId={projectId}/>
+        <BatchDetail batchId={batch.id} projectId={projectId} />
       </p>
     </TabPane>
-  )
+  ));
   return (
     <Fragment>
-      <Nav tabs>
-        {nav_items}
-      </Nav>
+      <Nav tabs>{nav_items}</Nav>
       <TabContent className="mb-5" activeTab={activeTabId}>
         {tab_items}
       </TabContent>
     </Fragment>
-  )
+  );
 }
 
 function GroupBySqlCard(props) {
-  let { active_batches } = props
-  let sql_map = new Map()
+  let { active_batches } = props;
+  let sql_map = new Map();
   active_batches.forEach((batch, batch_index) => {
-    batch.queries.forEach((query) => {
-      let sql = query.jsonStats.sql
+    batch.queries.forEach(query => {
+      let sql = query.jsonStats.sql;
       if (sql_map.has(sql)) {
         if (sql_map.get(sql)[batch_index]) {
-          sql_map.get(sql)[batch_index].push(query)
+          sql_map.get(sql)[batch_index].push(query);
         } else {
-          sql_map.get(sql)[batch_index] = [query]
+          sql_map.get(sql)[batch_index] = [query];
         }
       } else {
-        let sql_list = []
-        sql_list[batch_index] = [query]
-        sql_map.set(sql, sql_list)
+        let sql_list = [];
+        sql_list[batch_index] = [query];
+        sql_map.set(sql, sql_list);
       }
-    })
-  })
-  console.log("sql map", sql_map)
-  let sql_list = []
+    });
+  });
+  console.log('sql map', sql_map);
+  let sql_list = [];
   for (const [sql, query_grouped_by_batch] of sql_map) {
     const cols = query_grouped_by_batch.map((query_list, batch_index) => {
       return (
-        <Col lg="6" className="p-3" key={"query_grouped_by_batch" + batch_index}>
-          {query_list.map(sql => <p>{sql.jsonStats.sql.substring(0, 100)}</p>)}
+        <Col
+          lg="6"
+          className="p-3"
+          key={'query_grouped_by_batch' + batch_index}>
+          {query_list.map(sql => (
+            <p>{sql.jsonStats.sql.substring(0, 100)}</p>
+          ))}
         </Col>
-      )
-    })
-    sql_list.push(
-      <Row className="no-gutters">
-        {cols}
-      </Row>
-    )
+      );
+    });
+    sql_list.push(<Row className="no-gutters">{cols}</Row>);
   }
   return (
     <Card className="card-box mb-5">
@@ -131,31 +133,31 @@ function GroupBySqlCard(props) {
           </span>
         </div>
         <CardBody className="p-0">
-          <div className="grid-menu grid-menu-2col">
-            {sql_list}
-          </div>
+          <div className="grid-menu grid-menu-2col">{sql_list}</div>
         </CardBody>
       </div>
     </Card>
-  )
+  );
 }
 
 function SummaryCard(props) {
-  let { active_batches } = props
+  let { active_batches } = props;
   let batch_icons = active_batches.map((batch, index) => {
     return (
       <Col lg="6" className="p-3" key={batch.id}>
         <div className="text-center">
           <FontAwesomeIcon
             icon={['fas', 'lemon']}
-            className={"font-size-xxl text-" + color_class_list[index] + " my-3"}
+            className={
+              'font-size-xxl text-' + color_class_list[index] + ' my-3'
+            }
           />
           <span className="text-black-50 d-block">{batch.id}</span>
           <b className="font-size-xxl">{batch.queries.length}</b>
         </div>
       </Col>
-    )
-  })
+    );
+  });
   return (
     <Card className="card-box mb-5">
       <div className="px-4 px-xl-5 pb-1">
@@ -166,9 +168,7 @@ function SummaryCard(props) {
         </div>
         <CardBody className="p-0">
           <div className="grid-menu grid-menu-2col">
-            <Row className="no-gutters">
-              {batch_icons}
-            </Row>
+            <Row className="no-gutters">{batch_icons}</Row>
           </div>
         </CardBody>
         <div className="card-header border-0 d-block">
@@ -252,6 +252,5 @@ function SummaryCard(props) {
         </UncontrolledTooltip>
       </div>
     </Card>
-  )
+  );
 }
-
