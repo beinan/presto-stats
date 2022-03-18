@@ -44,11 +44,11 @@ export default function ProjectPage() {
   return (
     <Fragment>
       <PageTitle
-        titleHeading={"Project -- " + projectId}
-        titleDescription="This is a dashboard page example built using this template."
+        titleHeading={"项目名称 -- " + projectId}
+        titleDescription=""
       />
 
-    <BatchList batches={data.project.batches}/>
+    <BatchList batches={data.project.batches} projectId={projectId}/>
     <BatchComparison projectId={projectId}/>
     </Fragment>
   );

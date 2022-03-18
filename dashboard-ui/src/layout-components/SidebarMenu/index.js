@@ -27,9 +27,11 @@ class SidebarMenu extends Component {
       <Fragment>
         <PerfectScrollbar>
           <div className="sidebar-navigation">
+            {/*
             <div className="sidebar-header">
               <span>Navigation menu</span>
             </div>
+            */}
             <MetisMenu
               content={sidebarMenuContent}
               LinkComponent={RouterLink}

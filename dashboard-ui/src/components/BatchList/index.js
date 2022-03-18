@@ -40,19 +40,15 @@ function BatchItemRender(props) {
       <td>{index}</td>
       <td>
         <div>
-          <a
-            href="#/"
-            onClick={e => e.preventDefault()}
-            className="font-weight-bold text-black"
-            title="...">
+          <span className="font-weight-bold text-black">
             {batch.id}
-          </a>
+          </span>
           <span className="text-black-50 d-block"></span>
         </div>
       </td>
       <td className="text-center">
         <Badge color="neutral-success" className="text-success px-4">
-          Completed
+          完成
         </Badge>
       </td>
       <td>
@@ -68,7 +64,7 @@ function BatchItemRender(props) {
             checked={isActive}
             onChange={e => setActive(e.target.checked)}
           />{' '}
-          Check me out
+          选中
         </Label>
         {/* <CustomInput
                 className="mb-3"
@@ -92,11 +88,11 @@ export default function BatchList(props) {
     <Fragment>
       <Card className="card-box mb-5">
         <div className="card-header pr-2">
-          <div className="card-header--title">Batch List</div>
+          <div className="card-header--title">批次列表</div>
           <div className="card-header--actions">
             <Button
               tag="a"
-              href="#/"
+              href={"/project/" + projectId}
               onClick={e => e.preventDefault()}
               size="sm"
               color="link"

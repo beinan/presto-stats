@@ -22,6 +22,9 @@ class Header extends Component {
       <Fragment>
         <div className="app-header">
           <div className="app-header--pane">
+            <span className="font-weight-bold font-size-lg">Alluxio Presto 查询日志可视化工具</span>
+          </div>
+          <div className="app-header--pane">
             <button
               className={clsx(
                 'navbar-toggler hamburger hamburger--elastic toggle-mobile-sidebar-btn',
@@ -33,9 +36,11 @@ class Header extends Component {
               </span>
             </button>
           </div>
+          {/*
           <div className="app-header--pane">
             <HeaderUserbox />
           </div>
+          */}
         </div>
       </Fragment>
     );

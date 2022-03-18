@@ -9,11 +9,7 @@ function Footer() {
         <div className="app-footer--first">
         </div>
         <div className="app-footer--second">
-          <span>Bamburgh React Admin Dashboard with Reactstrap Free</span> ©
-          2020 - crafted with <span className="text-danger px-1">❤</span> by{' '}
-          <a href="https://uifort.com" target="_blank" title="UiFort.com">
-            UiFort.com
-          </a>
+          Alluxio © 2022 Presto 查询日志可视化工具
         </div>
       </div>
     </Fragment>

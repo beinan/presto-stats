@@ -90,10 +90,10 @@ function ProjectCard(props) {
               <span className="btn-wrapper--icon">
                 <FontAwesomeIcon icon={['far', 'eye']} />
               </span>
-              <span className="btn-wrapper--label">Generate reports</span>
+              <span className="btn-wrapper--label">生成报告</span>
             </Button>
           </Link>
-
+          {/*
           <Button size="sm" color="success" id="AddNewBatchTip" className="m-2">
             <span className="btn-wrapper--icon">
               <FontAwesomeIcon
@@ -105,6 +105,7 @@ function ProjectCard(props) {
           <UncontrolledTooltip target="AddNewBatchTip">
             Create a new batch
           </UncontrolledTooltip>
+          */}
         </div>
 
       </div>
@@ -177,9 +178,10 @@ export default function ProjectListPage() {
   return (
     <Fragment>
       <PageTitle
-        titleHeading={"Project List "}
+        titleHeading={"项目列表"}
         titleDescription=""
       >
+        {/*
         <div className="d-flex align-items-center mt-3 mt-lg-0">
           <Button size="sm" color="success" id="AddNewProjectTip" onClick={toggleNewProjectModal}>
             <span className="btn-wrapper--icon">
@@ -194,6 +196,7 @@ export default function ProjectListPage() {
           </UncontrolledTooltip>
           <NewProjectModal isOpen={isNewProjectModalOpen} toggle={toggleNewProjectModal}/>
         </div>
+        */}
       </PageTitle>
       {projectCardList}
     </Fragment>
