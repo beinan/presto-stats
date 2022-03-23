@@ -57,9 +57,9 @@ function QueryItemRender(props) {
 
   const active_query_index = props.active_queries.indexOf(query);
   const active_query_color = color_class_list[active_query_index + 1];
-  let checkbox_message = 'Check out this query';
+  let checkbox_message = '选中查询';
   if (active_query_index > -1) {
-    checkbox_message = 'Active Query #' + (active_query_index + 1);
+    checkbox_message = '已选中的查询 #' + (active_query_index + 1);
   }
 
   console.log('query', query);
@@ -92,7 +92,7 @@ function QueryItemRender(props) {
             </Alert>
           </CardBody>
           <div className="text-black-50 pb-3"></div>
-          <Col xl="9">
+          <Col xl="12">
             <div className="text-black-50 pb-3">
               <Label check>
                 <Input
@@ -137,8 +137,17 @@ function QueryItemRender(props) {
                   </small>
                 </div>
               </div>
+              <div>
+                <div className="text-center font-size-lg px-5">
+                  <span className="font-weight-bold">{endTime}</span>
+                  <small className="text-black-50 d-block">
+                    endTime
+                  </small>
+                </div>
+              </div>
             </div>
           </Col>
+          {/*
           <Col xl="3">
             <div className="text-black-50 pb-3">Current progress</div>
             <Progress
@@ -156,6 +165,7 @@ function QueryItemRender(props) {
               </div>
             </div>
           </Col>
+          */}
         </Row>
       </Card>
     </Fragment>

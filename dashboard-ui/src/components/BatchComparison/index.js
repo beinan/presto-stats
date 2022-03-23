@@ -45,7 +45,7 @@ function BatchComparison(props) {
   if (!active_batches) return <p />;
   return (
     <Fragment>
-      <SummaryCard active_batches={active_batches} />
+      {/*<SummaryCard active_batches={active_batches} />*/}
       <BatchTabs active_batches={active_batches} projectId={projectId} />
       <ChartList />
       <StatsTable />

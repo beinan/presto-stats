@@ -111,16 +111,17 @@ export default function BatchList(props) {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th className="text-left">Name</th>
-                  <th className="text-center">Status</th>
-                  <th className="text-center">Progress</th>
-                  <th className="text-center">Actions</th>
+                  <th className="text-left">批次名</th>
+                  <th className="text-center">状态</th>
+                  <th className="text-center">日志数量</th>
+                  <th className="text-center">选中批次</th>
                 </tr>
               </thead>
               <tbody>{batchItems}</tbody>
             </Table>
           </div>
         </CardBody>
+        {/*
         <div className="card-footer d-flex justify-content-between">
           <Button outline color="danger" size="sm">
             Delete
@@ -134,6 +135,7 @@ export default function BatchList(props) {
             </Button>
           </div>
         </div>
+        */}
       </Card>
     </Fragment>
   );
