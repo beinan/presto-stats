@@ -6,11 +6,7 @@ import Routes from './Routes';
 import ScrollToTop from './utils/ScrollToTop';
 import './assets/base.scss';
 
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider
-} from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -260,8 +256,11 @@ library.add(
 
 const store = configureStore();
 
+// server host is set at build time
+const serverHost = process.env.REACT_APP_SERVER_HOST || '';
+
 const client = new ApolloClient({
-  uri: '/query',
+  uri: `${serverHost}/query`,
   cache: new InMemoryCache()
 });
 

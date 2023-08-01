@@ -1,0 +1,12 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://gxvz0v65xd.execute-api.us-east-1.amazonaws.com"
+      ],
+      "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+      "MaxAgeSeconds": 3000,
+      "AllowedHeaders": ["*"]
+    }
+  ]
+}
